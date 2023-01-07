@@ -22,6 +22,7 @@ use bevy::prelude::*;
 use sprite_anim::SpriteAnimationPlugin;
 use ui_events::UiEventPlugin;
 use actor::ActorPlugin;
+use bevy_rapier2d::render::RapierDebugRenderPlugin;
 
 
 // This example game uses States to separate logic
@@ -58,7 +59,9 @@ impl Plugin for GamePlugin {
         #[cfg(debug_assertions)]
         {
             app.add_plugin(FrameTimeDiagnosticsPlugin::default())
-                .add_plugin(LogDiagnosticsPlugin::default());
+                .add_plugin(LogDiagnosticsPlugin::default())
+                .add_plugin(RapierDebugRenderPlugin::default())
+            ;
         }
     }
 }

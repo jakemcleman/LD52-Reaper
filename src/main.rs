@@ -18,8 +18,8 @@ fn main() {
         .insert_resource(PkvStore::new("VaguelyDamp", "ld52_reaper_game")) // ToDo
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
-                width: 800.,
-                height: 600.,
+                width: 1280.,
+                height: 800.,
                 title: "ld52_reaper_game".to_string(), // ToDo
                 canvas: Some("#bevy".to_owned()),
                 ..Default::default()

@@ -49,7 +49,7 @@ pub fn set_movement_actions(
         actions.player_movement = Vec2::ZERO;
     }
     
-    actions.jump = keyboard_input.pressed(KeyCode::Space);
+    actions.jump = keyboard_input.pressed(KeyCode::Space) || actions.player_movement.y > 0.5;
     
     for gamepad in gamepad_input.iter() { 
         actions.jump = actions.jump || gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));

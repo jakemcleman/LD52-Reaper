@@ -63,8 +63,11 @@ impl LdtkEntity for PlayerBundle {
                 "Decceleration" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.deccel = value;
                 },
-                "Gravity" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.gravity = value;
+                "UpGravity" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.up_gravity = value;
+                },
+                "DownGravity" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.down_gravity = value;
                 },
                 "JumpPower" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.jump_speed = value;
@@ -85,9 +88,10 @@ impl LdtkEntity for PlayerBundle {
             sprite_animator: crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true),
             player: Player,
             rigidbody: RigidBody::KinematicPositionBased,
-            collider: Collider::capsule_y(7., 6.),
+            collider: Collider::capsule_y(5., 5.),
             controller: KinematicCharacterController {
-                offset: CharacterLength::Relative(0.1),
+                offset: CharacterLength::Absolute(0.2),
+                autostep: None,
                 ..Default::default()
             },
             actor,
@@ -95,6 +99,8 @@ impl LdtkEntity for PlayerBundle {
                 grounded: false,
                 velocity: Vec2::ZERO,
                 air_timer: 0.,
+                left_wall: false,
+                right_wall: false,
             }
            
         }
@@ -112,11 +118,7 @@ fn player_inputs(
     for (mut actor, status) in &mut player_query {
         actor.move_input = input.x;
         
-        if status.grounded || status.air_timer < actor.jump_time {
-            actor.jump_input = actions.jump;
-        }
-        else {
-            actor.jump_input = false;
-        }
+        actor.jump_input = actions.jump;
+        actor.can_jump = status.grounded || status.air_timer < actor.jump_time;
     }
 }
