@@ -61,7 +61,7 @@ pub fn camera_fit_inside_current_level(
         for (level_transform, level_handle) in &level_query {
             if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
                 let level = &ldtk_level.level;
-                if level_selection.is_match(&0, level) {
+                // if level_selection.is_match(&0, level) {
                     let level_ratio = level.px_wid as f32 / ldtk_level.level.px_hei as f32;
 
                     orthographic_projection.scaling_mode = bevy::render::camera::ScalingMode::None;
@@ -89,7 +89,7 @@ pub fn camera_fit_inside_current_level(
 
                     camera_transform.translation.x += level_transform.translation.x;
                     camera_transform.translation.y += level_transform.translation.y;
-                }
+                // }
             }
         }
     }

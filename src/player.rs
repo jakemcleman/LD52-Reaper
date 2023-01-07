@@ -16,7 +16,11 @@ pub struct Player;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(player_inputs))
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(player_inputs)
+                .after(actor_status)
+                .before(actor_movement)
+            )
         ;
     }
 }

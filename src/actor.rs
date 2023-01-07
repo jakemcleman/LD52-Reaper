@@ -52,7 +52,7 @@ pub enum ActorEvent {
 impl Plugin for ActorPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_status))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_status).before(actor_movement))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_movement))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_animations))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_audio))
@@ -78,7 +78,7 @@ impl Default for Actor {
     }
 }
 
-fn actor_status(
+pub fn actor_status(
     time: Res<Time>,
     mut actor_query: Query<(&Transform, &mut ActorStatus, &KinematicCharacterControllerOutput)>,
     rapier_context: Res<RapierContext>,
@@ -121,7 +121,7 @@ fn actor_status(
     }
 }
 
-fn actor_movement(
+pub fn actor_movement(
     time: Res<Time>,
     mut actor_query: Query<(&Actor, &mut ActorStatus, &mut KinematicCharacterController)>,
 ) {

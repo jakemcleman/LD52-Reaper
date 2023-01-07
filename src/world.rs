@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, input::InputSystem};
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashSet, HashMap};
@@ -18,10 +18,23 @@ impl Plugin for WorldPlugin {
                 ..Default::default()
             })
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_world))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
             .register_ldtk_int_cell::<WallBundle>(1)
         ;
+    }
+}
+
+fn switch_level(
+    mut level_selection: ResMut<LevelSelection>,
+    input: Res<Input<KeyCode>>,
+    ) {
+    if input.just_pressed(KeyCode::Key1) {
+        *level_selection = LevelSelection::Index(0);
+    }
+    else if input.just_pressed(KeyCode::Key2) {
+        *level_selection = LevelSelection::Index(1);
     }
 }
 
