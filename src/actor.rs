@@ -17,6 +17,8 @@ pub struct Actor {
     pub move_input: f32,
     pub jump_input: bool,
     pub can_jump: bool,
+    pub attack_input: bool,
+    pub attack_time: f32,
 }
 
 #[derive(Component, Default, Clone)]
@@ -24,6 +26,8 @@ pub struct ActorStatus {
     pub grounded: bool,
     pub velocity: Vec2,
     pub air_timer: f32,
+    pub attacking: bool,
+    pub attack_timer: f32,
     pub left_wall: bool,
     pub right_wall: bool,
     pub event: Option<ActorEvent>,
@@ -35,18 +39,21 @@ pub struct ActorAnimationStates {
     pub run_row: usize,
     pub jump_row: usize,
     pub fall_row: usize,
+    pub attack_row: usize,
 }
 
 #[derive(Component, Default, Clone)]
 pub struct ActorAudio {
     pub jump: Handle<AudioSource>,
     pub land: Handle<AudioSource>,
+    pub attack: Handle<AudioSource>,
 }
 
 #[derive(Clone)]
 pub enum ActorEvent {
     Launched,
     Landed,
+    Attack,
 }
 
 impl Plugin for ActorPlugin {
@@ -73,6 +80,8 @@ impl Default for Actor {
             jump_time: 0.2,
             move_input: 0.,
             jump_input: false,
+            attack_time: 0.2,
+            attack_input: false,
             can_jump: false,
         }
     }
@@ -88,6 +97,10 @@ pub fn actor_status(
             actor_status.event = Some(ActorEvent::Landed)
         }
         
+        if actor_status.attacking {
+            actor_status.attack_timer += time.delta_seconds();
+        }
+        
         actor_status.grounded = controller_output.grounded;
         actor_status.velocity = controller_output.effective_translation / time.delta_seconds();
         
@@ -101,7 +114,7 @@ pub fn actor_status(
         let shape = Collider::capsule_y(4.9, 5.);
         let shape_pos = transform.translation.truncate();
         let filter = QueryFilter::only_fixed();
-        let distance = 0.2;
+        let distance = 1.0;
         
         if rapier_context.cast_shape(
             shape_pos, 0., Vec2::new(distance, 0.), &shape, 1., filter).is_some() {
@@ -114,6 +127,7 @@ pub fn actor_status(
         if rapier_context.cast_shape(
             shape_pos, 0., Vec2::new(-distance, 0.), &shape, 1., filter).is_some() {
             actor_status.left_wall = true;
+            
         }
         else {
             actor_status.left_wall = false;
@@ -158,14 +172,28 @@ pub fn actor_movement(
         }
         
         controller.translation = Some(time.delta_seconds() * status.velocity);
+        
+        if !status.attacking && actor.attack_input {
+            status.attacking = true;
+            status.attack_timer = 0.;
+            status.event = Some(ActorEvent::Attack);
+        }
+        else if status.attacking && status.attack_timer >= actor.attack_time {
+            status.attacking = false;
+        }
     }
 }
 
 fn actor_animations(
-    mut actor_query: Query<(&ActorStatus, &ActorAnimationStates, &mut SpriteAnimator, &mut TextureAtlasSprite)>,
+    mut actor_query: Query<(&Actor, &ActorStatus, &ActorAnimationStates, &mut SpriteAnimator, &mut TextureAtlasSprite)>,
 ) {
-    for (status, anim_states, mut animator, mut sprite) in &mut actor_query {
-        if status.grounded {
+    for (actor, status, anim_states, mut animator, mut sprite) in &mut actor_query {
+        if status.attacking {
+            let t = status.attack_timer / actor.attack_time;
+            animator.set_row(anim_states.attack_row);
+            animator.set_animation_progress(t);
+        }
+        else if status.grounded {
             if status.velocity.x.abs() > 20. {
                 animator.set_row(anim_states.run_row);
             }
@@ -182,7 +210,7 @@ fn actor_animations(
             }
         }
         
-        sprite.flip_x = status.velocity.x < 0.;
+        sprite.flip_x = actor.move_input < 0.;
     }
 }
 
@@ -195,6 +223,7 @@ fn actor_audio(
             match event {
                 ActorEvent::Launched => audio.play(actor_sounds.jump.clone()),
                 ActorEvent::Landed => audio.play(actor_sounds.land.clone()),
+                ActorEvent::Attack => audio.play(actor_sounds.attack.clone()),
             };
             
             // Clear event now its been processed

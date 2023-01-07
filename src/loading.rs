@@ -34,6 +34,8 @@ pub struct AudioAssets {
     pub jump: Handle<AudioSource>,
     #[asset(path = "audio/land2.ogg")]
     pub land: Handle<AudioSource>,
+    #[asset(path = "audio/attack1.ogg")]
+    pub attack: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Resource)]
@@ -44,4 +46,6 @@ pub struct SpriteAssets {
     pub texture_dampboi: Handle<Image>,
     #[asset(path = "sprites/sam1.png")]
     pub texture_sam: Handle<Image>,
+    #[asset(path = "sprites/ghost.png")]
+    pub texture_ghost: Handle<Image>,
 }

@@ -7,11 +7,13 @@ mod sprite_anim;
 mod world;
 mod camera;
 mod actor;
+mod ghost;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;
 use crate::mainmenu::MainMenuPlugin;
 use crate::player::PlayerPlugin;
+use crate::ghost::GhostPlugin;
 use crate::world::WorldPlugin;
 use crate::camera::CameraPlugin;
 
@@ -49,6 +51,7 @@ impl Plugin for GamePlugin {
             .add_plugin(MainMenuPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(PlayerPlugin)
+            .add_plugin(GhostPlugin)
             .add_plugin(ActorPlugin)
             .add_plugin(SpriteAnimationPlugin)
             .add_plugin(CameraPlugin)

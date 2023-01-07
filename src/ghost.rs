@@ -1,54 +1,47 @@
-use crate::actions::Actions;
 use crate::GameState;
 use crate::sprite_anim::SpriteAnimator;
+use crate::player::TouchDeath;
 use crate::actor::*;
-use crate::world::ReloadWorldEvent;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-pub struct PlayerPlugin;
+pub struct GhostPlugin;
 
 #[derive(Component, Default, Clone)]
-pub struct Player;
-
-#[derive(Component, Default, Clone)]
-pub struct TouchDeath;
+pub struct Ghost {
+    move_left: bool,
+}
 
 /// This plugin handles player related stuff like movement
 /// Player logic is only active during the State `GameState::Playing`
-impl Plugin for PlayerPlugin {
+impl Plugin for GhostPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(player_inputs)
+                .with_system(ghost_movement)
                 .after(actor_status)
                 .before(actor_movement)
-            )
-            .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(player_death)
             )
         ;
     }
 }
 
 #[derive(Clone, Default, Bundle)]
-pub struct PlayerBundle {
+pub struct GhostBundle {
     #[bundle]
     pub sprite_sheet_bundle: SpriteSheetBundle,
     pub sprite_animator: SpriteAnimator,
-    pub player: Player,
+    pub ghost: Ghost,
     pub rigidbody: RigidBody,
     pub collider: Collider,
-    pub active_events: ActiveEvents,
     pub controller: KinematicCharacterController,
     pub actor: Actor,
     pub actor_status: ActorStatus,
-    pub actor_anim: ActorAnimationStates,
-    pub actor_audio: ActorAudio,
+    pub death: TouchDeath,
 }
 
-impl LdtkEntity for PlayerBundle {
+impl LdtkEntity for GhostBundle {
     fn bundle_entity(
         entity_instance: &EntityInstance,
         _layer_instance: &LayerInstance,
@@ -57,14 +50,15 @@ impl LdtkEntity for PlayerBundle {
         asset_server: &AssetServer,
         texture_atlases: &mut Assets<TextureAtlas>,
     ) -> Self {
-        let texture_handle = asset_server.load("sprites/sam1.png");
+        let texture_handle = asset_server.load("sprites/ghost.png");
         let texture_atlas = TextureAtlas::from_grid(
             texture_handle, 
-            Vec2::new(48., 32.), 
-            4, 5, None, None);
+            Vec2::new(24., 24.), 
+            4, 1, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         
         let mut actor = Actor::default();
+        let mut ghost = Ghost::default();
         
         for field in entity_instance.field_instances.iter() {
             match field.identifier.as_str() {
@@ -95,21 +89,23 @@ impl LdtkEntity for PlayerBundle {
                 "AttackTime" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.attack_time = value;
                 },
-                unknown => println!("Unknown field \"{}\" on LDtk player object!", unknown),
+                "StartLeft" => if let FieldValue::Bool(value) = field.value {
+                    ghost.move_left = value;
+                },
+                unknown => println!("Unknown field \"{}\" on LDtk ghost object!", unknown),
             }
         }
         
-        PlayerBundle {
+        GhostBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle.clone(),
                 transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                 ..Default::default()
             },
             sprite_animator: crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true),
-            player: Player,
+            ghost,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5., 5.),
-            active_events: ActiveEvents::COLLISION_EVENTS,
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.2),
                 autostep: None,
@@ -126,64 +122,22 @@ impl LdtkEntity for PlayerBundle {
                 right_wall: false,
                 event: None,
             },
-           actor_anim: ActorAnimationStates {
-               idle_row: 0,
-               run_row: 1,
-               jump_row: 2,
-               fall_row: 3,
-               attack_row: 4,
-           },
-           actor_audio: ActorAudio {
-               jump: asset_server.load("audio/jump2.ogg"),
-               land: asset_server.load("audio/land2.ogg"),
-               attack: asset_server.load("audio/attack1.ogg"),
-           },
+            death: TouchDeath,
         }
     }
 }
 
-fn player_inputs(
-    actions: Res<Actions>,
-    mut player_query: Query<(&mut Actor, &ActorStatus), With<Player>>,
-) {
-    let input = Vec2::new(
-        actions.player_movement.x,
-        actions.player_movement.y,
-    );
-    for (mut actor, status) in &mut player_query {
-        actor.move_input = input.x;
-        
-        actor.jump_input = actions.jump;
-        actor.can_jump = status.grounded || status.air_timer < actor.jump_time;
-        
-        actor.attack_input = actions.attack && !status.attacking;
-    }
-}
-
-fn player_death(
-    player_query: Query<&KinematicCharacterControllerOutput, With<Player>>,
-    enemies_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>), With<TouchDeath>>,
-    mut reload_writer: EventWriter<ReloadWorldEvent>,
-) {
-    for controller_out in &player_query { 
-        for collision in controller_out.collisions.iter() {
-            if enemies_query.contains(collision.entity) {
-                println!("ded from player");
-                reload_writer.send(ReloadWorldEvent);
-                return;
-            }
+fn ghost_movement(
+    mut ghost_query: Query<(&mut Ghost, &mut Actor, &ActorStatus)>,
+    ) {
+    for (mut ghost, mut actor, status) in &mut ghost_query {
+        if ghost.move_left && status.left_wall {
+            ghost.move_left = false;
         }
-    }
-    
-    for (_en, maybe_controller) in &enemies_query {
-        if let Some(controller_out) = maybe_controller {
-            for collision in controller_out.collisions.iter() {
-                if player_query.contains(collision.entity) {
-                    println!("ded from enemy");
-                    reload_writer.send(ReloadWorldEvent);
-                    return;
-                }
-            }
+        else if !ghost.move_left && status.right_wall {
+            ghost.move_left = true;
         }
+        
+        actor.move_input = if ghost.move_left { -1. } else { 1. };
     }
 }

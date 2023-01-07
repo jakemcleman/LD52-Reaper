@@ -1,4 +1,4 @@
-use bevy::{prelude::*, input::InputSystem};
+use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashSet, HashMap};
@@ -7,10 +7,13 @@ use crate::GameState;
 
 pub struct WorldPlugin;
 
+pub struct ReloadWorldEvent;
+
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App){
         app
             .insert_resource(LevelSelection::Index(0))
+            .add_event::<ReloadWorldEvent>()
             .add_plugin(LdtkPlugin)
             .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
             .insert_resource(RapierConfiguration {
@@ -19,10 +22,25 @@ impl Plugin for WorldPlugin {
             })
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_world))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
+            .register_ldtk_entity::<crate::ghost::GhostBundle>("Ghost")
             .register_ldtk_int_cell::<WallBundle>(1)
         ;
+    }
+}
+
+fn reload_level(
+    mut commands: Commands,
+    level_query: Query<Entity, With<Handle<LdtkLevel>>>,
+    input: Res<Input<KeyCode>>,
+    reload_event_listener: EventReader<ReloadWorldEvent>,
+) {
+    if reload_event_listener.len() > 0 ||  input.just_pressed(KeyCode::R) {
+        for level_entity in &level_query {
+            commands.entity(level_entity).insert(Respawn);
+        }
     }
 }
 

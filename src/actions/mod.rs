@@ -23,6 +23,7 @@ impl Plugin for ActionsPlugin {
 pub struct Actions {
     pub player_movement: Vec2,
     pub jump: bool,
+    pub attack: bool,
 }
 
 pub fn set_movement_actions(
@@ -52,6 +53,21 @@ pub fn set_movement_actions(
     actions.jump = keyboard_input.pressed(KeyCode::Space) || actions.player_movement.y > 0.5;
     
     for gamepad in gamepad_input.iter() { 
+        if actions.jump {
+            break;
+        }
         actions.jump = actions.jump || gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
+    }
+    
+    actions.attack = keyboard_input.just_pressed(KeyCode::Q) || keyboard_input.just_pressed(KeyCode::E);
+    
+    for gamepad in gamepad_input.iter() { 
+        if actions.attack {
+            break;
+        }
+        actions.attack = actions.attack 
+                        || gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::West))
+                        || gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East))
+                    ;
     }
 }

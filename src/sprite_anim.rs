@@ -1,3 +1,4 @@
+
 use bevy::prelude::*;
 
 pub struct SpriteAnimationPlugin;
@@ -13,12 +14,13 @@ pub struct SpriteAnimator {
     _atlas_handle: Handle<TextureAtlas>,
     start_frame: usize,
     end_frame: usize,
-    _row_length: usize,
+    row_length: usize,
     seconds_per_frame: f32,
     frame_timer: f32,
     pub should_loop: bool,
     playing: bool,
     restart_anim: bool,
+    progress_override: Option<f32>,
 }
 
 impl SpriteAnimator {
@@ -34,12 +36,13 @@ impl SpriteAnimator {
             _atlas_handle,
             start_frame,
             end_frame,
-            _row_length: row_length,
+            row_length,
             seconds_per_frame,
             frame_timer: 0.,
             should_loop,
             playing: true,
             restart_anim: false,
+            progress_override: None,
         }
     }
 
@@ -52,12 +55,16 @@ impl SpriteAnimator {
     }
 
     pub fn set_row(&mut self, row_index: usize) {
-        let new_start = row_index * self._row_length;
+        let new_start = row_index * self.row_length;
         if self.start_frame != new_start {
             self.start_frame = new_start;
-            self.end_frame = self.start_frame + self._row_length - 1;
+            self.end_frame = self.start_frame + self.row_length - 1;
             self.restart_anim = true;
         }
+    }
+    
+    pub fn set_animation_progress(&mut self, t: f32) {
+        self.progress_override = Some(t);
     }
 }
 
@@ -69,7 +76,14 @@ fn animate_sprite(
     )>
 ) {
     for (mut animator, mut sprite) in sprites.iter_mut() {
-        if animator.playing {
+        if let Some(t) = animator.progress_override {
+            let decimal_frame = (animator.row_length) as f32 * t;
+            let frame = decimal_frame as usize;
+            sprite.index = (animator.start_frame + frame).clamp(animator.start_frame , animator.end_frame);
+            animator.frame_timer = (decimal_frame - (frame as f32)) * animator.seconds_per_frame;
+            animator.progress_override = None;
+        }
+        else if animator.playing {
             animator.frame_timer += time.delta_seconds();
 
             if animator.restart_anim || animator.frame_timer > animator.seconds_per_frame {
