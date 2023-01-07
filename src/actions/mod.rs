@@ -21,7 +21,8 @@ impl Plugin for ActionsPlugin {
 
 #[derive(Default, Resource)]
 pub struct Actions {
-    pub player_movement: Option<Vec2>,
+    pub player_movement: Vec2,
+    pub jump: bool,
 }
 
 pub fn set_movement_actions(
@@ -41,10 +42,16 @@ pub fn set_movement_actions(
     );
 
     if keyboard_movement != Vec2::ZERO {
-        actions.player_movement = Some(keyboard_movement.normalize());
+        actions.player_movement = keyboard_movement.normalize();
     } else if gamepad_movement.length_squared() > 0.1 {
-        actions.player_movement = Some(gamepad_movement.normalize());
+        actions.player_movement = gamepad_movement.normalize();
     } else {
-        actions.player_movement = None;
+        actions.player_movement = Vec2::ZERO;
+    }
+    
+    actions.jump = keyboard_input.pressed(KeyCode::Space);
+    
+    for gamepad in gamepad_input.iter() { 
+        actions.jump |= gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
     }
 }

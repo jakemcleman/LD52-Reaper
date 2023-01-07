@@ -6,6 +6,7 @@ mod ui_events;
 mod sprite_anim;
 mod world;
 mod camera;
+mod actor;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;
@@ -20,6 +21,7 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use sprite_anim::SpriteAnimationPlugin;
 use ui_events::UiEventPlugin;
+use actor::ActorPlugin;
 
 
 // This example game uses States to separate logic
@@ -46,8 +48,10 @@ impl Plugin for GamePlugin {
             .add_plugin(MainMenuPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(PlayerPlugin)
+            .add_plugin(ActorPlugin)
             .add_plugin(SpriteAnimationPlugin)
             .add_plugin(CameraPlugin)
+            
         ;
             
 
