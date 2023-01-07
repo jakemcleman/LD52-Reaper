@@ -36,7 +36,7 @@ pub struct PlayerBundle {
 
 impl LdtkEntity for PlayerBundle {
     fn bundle_entity(
-        _entity_instance: &EntityInstance,
+        entity_instance: &EntityInstance,
         _layer_instance: &LayerInstance,
         _tileset: Option<&Handle<Image>>,
         _tileset_definition: Option<&TilesetDefinition>,
@@ -47,6 +47,35 @@ impl LdtkEntity for PlayerBundle {
         let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(48., 32.), 4, 1, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         
+        let mut actor = Actor::default();
+        
+        for field in entity_instance.field_instances.iter() {
+            match field.identifier.as_str() {
+                "Speed" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.move_speed = value;
+                },
+                "Drag" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.drag = value;
+                },
+                "Acceleration" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.accel = value;
+                },
+                "Decceleration" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.deccel = value;
+                },
+                "Gravity" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.gravity = value;
+                },
+                "Jump Power" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.jump_speed = value;
+                },
+                "Jump Time" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.jump_time = value;
+                },
+                unknown => println!("Unknown field \"{}\" on LDtk player object!", unknown),
+            }
+        }
+        
         PlayerBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle.clone(),
@@ -56,25 +85,16 @@ impl LdtkEntity for PlayerBundle {
             sprite_animator: crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true),
             player: Player,
             rigidbody: RigidBody::KinematicPositionBased,
-            collider: Collider::capsule_y(7., 7.),
+            collider: Collider::capsule_y(7., 6.),
             controller: KinematicCharacterController {
-                offset: CharacterLength::Relative(0.1),
+                offset: CharacterLength::Relative(0.05),
                 ..Default::default()
             },
-            actor: Actor {
-                move_speed: 60.,
-                drag: 0.1,
-                accel: 500., 
-                deccel: 1000.,
-                gravity: 1000.,
-                jump_speed: 1000.,
-                jump_time: 0.1,
-                move_input: 0.,
-                jump_input: false,
-            },
+            actor,
             actor_status: ActorStatus {
                 grounded: false,
                 velocity: Vec2::ZERO,
+                air_timer: 0.,
             }
            
         }
@@ -92,7 +112,7 @@ fn player_inputs(
     for (mut actor, status) in &mut player_query {
         actor.move_input = input.x;
         
-        if status.grounded {
+        if status.grounded || status.air_timer < actor.jump_time {
             actor.jump_input = actions.jump;
         }
         else {

@@ -5,7 +5,7 @@ use bevy_rapier2d::prelude::*;
 
 pub struct ActorPlugin;
 
-#[derive(Component, Default, Clone)]
+#[derive(Component, Clone)]
 pub struct Actor {
     pub move_speed: f32,
     pub drag: f32,
@@ -22,6 +22,7 @@ pub struct Actor {
 pub struct ActorStatus {
     pub grounded: bool,
     pub velocity: Vec2,
+    pub air_timer: f32,
 }
 
 impl Plugin for ActorPlugin {
@@ -33,6 +34,22 @@ impl Plugin for ActorPlugin {
     }
 }
 
+impl Default for Actor {
+    fn default() -> Self {
+        Actor {
+            move_speed: 120.,
+            drag: 0.3,
+            accel: 1000., 
+            deccel: 2000.,
+            gravity: 300.,
+            jump_speed: 800.,
+            jump_time: 0.2,
+            move_input: 0.,
+            jump_input: false,
+        }
+    }
+}
+
 fn actor_status(
     time: Res<Time>,
     mut actor_query: Query<(&mut ActorStatus, &KinematicCharacterControllerOutput)>
@@ -40,6 +57,13 @@ fn actor_status(
     for (mut actor_status, controller_output) in &mut actor_query {
         actor_status.grounded = controller_output.grounded;
         actor_status.velocity = controller_output.effective_translation / time.delta_seconds();
+        
+        if actor_status.grounded {
+            actor_status.air_timer = 0.;
+        }
+        else {
+            actor_status.air_timer += time.delta_seconds();
+        }
     }
 }
 
@@ -58,12 +82,9 @@ fn actor_movement(
         
         status.velocity.x = status.velocity.x.clamp(-actor.move_speed, actor.move_speed);
         
-        if status.grounded {
-            status.velocity.y = 0.;
-            if actor.jump_input {
-                status.velocity.y += actor.jump_speed;
-            }    
-        }
+        if actor.jump_input {
+            status.velocity.y += actor.jump_speed * time.delta_seconds();
+        }    
         else {
             status.velocity.y -= actor.gravity * time.delta_seconds();
         }

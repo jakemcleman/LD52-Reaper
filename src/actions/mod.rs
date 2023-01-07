@@ -52,6 +52,6 @@ pub fn set_movement_actions(
     actions.jump = keyboard_input.pressed(KeyCode::Space);
     
     for gamepad in gamepad_input.iter() { 
-        actions.jump |= gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
+        actions.jump = actions.jump || gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
     }
 }
