@@ -1,34 +1,54 @@
 use crate::actions::Actions;
-use crate::loading::SpriteAssets;
 use crate::GameState;
+use crate::sprite_anim::SpriteAnimator;
 use bevy::prelude::*;
+use bevy_ecs_ldtk::prelude::*;
 
 pub struct PlayerPlugin;
 
-#[derive(Component)]
+#[derive(Component, Default, Clone)]
 pub struct Player;
 
 /// This plugin handles player related stuff like movement
 /// Player logic is only active during the State `GameState::Playing`
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_player))
+        app
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(move_player));
     }
 }
 
-fn spawn_player(mut commands: Commands, sprites: Res<SpriteAssets>, mut texture_atlases: ResMut<Assets<TextureAtlas>>,) {
-    let texture_atlas = TextureAtlas::from_grid(sprites.texture_sam.clone(), Vec2::new(42., 32.), 4, 1, None, None);
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    
-    commands
-        .spawn(SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle.clone(),
-            transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
-            ..Default::default()
-        })
-        .insert(Player)
-        .insert(crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true));
+#[derive(Clone, Default, Bundle)]
+pub struct PlayerBundle {
+    #[bundle]
+    pub sprite_sheet_bundle: SpriteSheetBundle,
+    pub sprite_animator: SpriteAnimator,
+    pub player: Player,
+}
+
+impl LdtkEntity for PlayerBundle {
+    fn bundle_entity(
+        _entity_instance: &EntityInstance,
+        _layer_instance: &LayerInstance,
+        _tileset: Option<&Handle<Image>>,
+        _tileset_definition: Option<&TilesetDefinition>,
+        asset_server: &AssetServer,
+        texture_atlases: &mut Assets<TextureAtlas>,
+    ) -> Self {
+        let texture_handle = asset_server.load("sprites/sam1.png");
+        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(42., 32.), 4, 1, None, None);
+        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+        
+        PlayerBundle {
+            sprite_sheet_bundle: SpriteSheetBundle {
+                texture_atlas: texture_atlas_handle.clone(),
+                transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
+                ..Default::default()
+            },
+            sprite_animator: crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true),
+            player: Player,
+        }
+    }
 }
 
 fn move_player(

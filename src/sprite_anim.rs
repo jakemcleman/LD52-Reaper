@@ -8,7 +8,7 @@ impl Plugin for SpriteAnimationPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Clone)]
 pub struct SpriteAnimator {
     _atlas_handle: Handle<TextureAtlas>,
     start_frame: usize,

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkWorldBundle};
+use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkWorldBundle, prelude::RegisterLdtkObjects};
 
 use crate::GameState;
 
@@ -11,6 +11,7 @@ impl Plugin for WorldPlugin {
             .insert_resource(LevelSelection::Index(0))
             .add_plugin(LdtkPlugin)
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_world))
+            .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
         ;
     }
 }
