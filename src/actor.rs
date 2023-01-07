@@ -26,6 +26,7 @@ pub struct ActorStatus {
     pub air_timer: f32,
     pub left_wall: bool,
     pub right_wall: bool,
+    pub event: Option<ActorEvent>,
 }
 
 #[derive(Component, Default, Clone)]
@@ -36,12 +37,25 @@ pub struct ActorAnimationStates {
     pub fall_row: usize,
 }
 
+#[derive(Component, Default, Clone)]
+pub struct ActorAudio {
+    pub jump: Handle<AudioSource>,
+    pub land: Handle<AudioSource>,
+}
+
+#[derive(Clone)]
+pub enum ActorEvent {
+    Launched,
+    Landed,
+}
+
 impl Plugin for ActorPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_status))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_movement))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_animations))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_audio))
         ;
     }
 }
@@ -70,6 +84,10 @@ fn actor_status(
     rapier_context: Res<RapierContext>,
 ) {
     for (transform, mut actor_status, controller_output) in &mut actor_query {
+        if !actor_status.grounded && controller_output.grounded {
+            actor_status.event = Some(ActorEvent::Landed)
+        }
+        
         actor_status.grounded = controller_output.grounded;
         actor_status.velocity = controller_output.effective_translation / time.delta_seconds();
         
@@ -126,6 +144,10 @@ fn actor_movement(
         if actor.jump_input {
             if actor.can_jump {
                 status.velocity.y += actor.jump_speed * time.delta_seconds();
+                
+                if status.grounded {
+                    status.event = Some(ActorEvent::Launched);
+                }
             }
             else {
                 status.velocity.y -= actor.up_gravity * time.delta_seconds();
@@ -161,5 +183,22 @@ fn actor_animations(
         }
         
         sprite.flip_x = status.velocity.x < 0.;
+    }
+}
+
+fn actor_audio(
+    mut actor_query: Query<(&mut ActorStatus, &ActorAudio)>,
+    audio: Res<Audio>
+) {
+    for (mut status, actor_sounds) in &mut actor_query {
+        if let Some(event) = &status.event {
+            match event {
+                ActorEvent::Launched => audio.play(actor_sounds.jump.clone()),
+                ActorEvent::Landed => audio.play(actor_sounds.land.clone()),
+            };
+            
+            // Clear event now its been processed
+            status.event = None;
+        }
     }
 }

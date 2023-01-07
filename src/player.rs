@@ -33,6 +33,7 @@ pub struct PlayerBundle {
     pub actor: Actor,
     pub actor_status: ActorStatus,
     pub actor_anim: ActorAnimationStates,
+    pub actor_audio: ActorAudio,
 }
 
 impl LdtkEntity for PlayerBundle {
@@ -102,12 +103,17 @@ impl LdtkEntity for PlayerBundle {
                 air_timer: 0.,
                 left_wall: false,
                 right_wall: false,
+                event: None,
             },
            actor_anim: ActorAnimationStates {
                idle_row: 0,
                run_row: 1,
                jump_row: 2,
                fall_row: 3,
+           },
+           actor_audio: ActorAudio {
+               jump: asset_server.load("audio/jump2.ogg"),
+               land: asset_server.load("audio/land2.ogg"),
            },
         }
     }
