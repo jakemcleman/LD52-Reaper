@@ -1,6 +1,6 @@
 [package]
 name = "ld52_reaper_game"
-version = "0.1.0"
+version = "0.1.1"
 publish = false
 authors = ["Jake McLeman"]
 edition = "2021"
