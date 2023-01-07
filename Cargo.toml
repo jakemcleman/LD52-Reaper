@@ -1,8 +1,9 @@
 [package]
-name = "LD52_ReaperGame"
+name = "ld52_reaper_game"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
 bevy = "0.9"
+bevy_pixel_camera = "0.3"
