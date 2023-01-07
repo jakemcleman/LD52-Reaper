@@ -32,6 +32,7 @@ pub struct PlayerBundle {
     pub controller: KinematicCharacterController,
     pub actor: Actor,
     pub actor_status: ActorStatus,
+    pub actor_anim: ActorAnimationStates,
 }
 
 impl LdtkEntity for PlayerBundle {
@@ -44,7 +45,7 @@ impl LdtkEntity for PlayerBundle {
         texture_atlases: &mut Assets<TextureAtlas>,
     ) -> Self {
         let texture_handle = asset_server.load("sprites/sam1.png");
-        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(48., 32.), 4, 1, None, None);
+        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(48., 32.), 4, 4, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         
         let mut actor = Actor::default();
@@ -101,8 +102,13 @@ impl LdtkEntity for PlayerBundle {
                 air_timer: 0.,
                 left_wall: false,
                 right_wall: false,
-            }
-           
+            },
+           actor_anim: ActorAnimationStates {
+               idle_row: 0,
+               run_row: 1,
+               jump_row: 2,
+               fall_row: 3,
+           },
         }
     }
 }

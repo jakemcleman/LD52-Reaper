@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use crate::GameState;
+use crate::{GameState, sprite_anim::SpriteAnimator};
 
 pub struct ActorPlugin;
 
@@ -28,11 +28,20 @@ pub struct ActorStatus {
     pub right_wall: bool,
 }
 
+#[derive(Component, Default, Clone)]
+pub struct ActorAnimationStates {
+    pub idle_row: usize,
+    pub run_row: usize,
+    pub jump_row: usize,
+    pub fall_row: usize,
+}
+
 impl Plugin for ActorPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_status))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_movement))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_animations))
         ;
     }
 }
@@ -127,5 +136,30 @@ fn actor_movement(
         }
         
         controller.translation = Some(time.delta_seconds() * status.velocity);
+    }
+}
+
+fn actor_animations(
+    mut actor_query: Query<(&ActorStatus, &ActorAnimationStates, &mut SpriteAnimator, &mut TextureAtlasSprite)>,
+) {
+    for (status, anim_states, mut animator, mut sprite) in &mut actor_query {
+        if status.grounded {
+            if status.velocity.x.abs() > 20. {
+                animator.set_row(anim_states.run_row);
+            }
+            else {
+                animator.set_row(anim_states.idle_row);
+            }
+        }
+        else {
+            if status.velocity.y > -10. {
+                animator.set_row(anim_states.jump_row);
+            }
+            else {
+                animator.set_row(anim_states.fall_row);
+            }
+        }
+        
+        sprite.flip_x = status.velocity.x < 0.;
     }
 }

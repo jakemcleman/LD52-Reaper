@@ -51,10 +51,13 @@ impl SpriteAnimator {
         self.playing = false;
     }
 
-    pub fn _set_row(&mut self, row_index: usize) {
-        self.start_frame = row_index * self._row_length;
-        self.end_frame = self.start_frame + self._row_length - 1;
-        self.restart_anim = true;
+    pub fn set_row(&mut self, row_index: usize) {
+        let new_start = row_index * self._row_length;
+        if self.start_frame != new_start {
+            self.start_frame = new_start;
+            self.end_frame = self.start_frame + self._row_length - 1;
+            self.restart_anim = true;
+        }
     }
 }
 
