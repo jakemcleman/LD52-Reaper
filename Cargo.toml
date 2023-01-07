@@ -1,9 +1,37 @@
 [package]
 name = "ld52_reaper_game"
 version = "0.1.0"
+publish = false
+authors = ["Jake McLeman"]
 edition = "2021"
-license = "MIT OR Apache-2.0"
+exclude = ["dist", "build", "assets", "credits"]
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[features]
+dev = [
+    "bevy/dynamic",
+]
 
 [dependencies]
 bevy = "0.9"
 bevy_pixel_camera = "0.3"
+bevy_asset_loader = { version = "0.14" }
+rand = { version = "0.8.3" }
+bevy_quickmenu = "0.1.5"
+bevy_pkv = "0.6.0"
+
+# keep the following in sync with Bevy's dependencies
+winit = { version = "0.27", default-features = false }
+image = { version = "0.24", default-features = false }
+
+[build-dependencies]
+embed-resource = "1.4"

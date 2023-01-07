@@ -1,11 +1,19 @@
 use bevy::prelude::*;
 
+pub struct SpriteAnimationPlugin;
+
+impl Plugin for SpriteAnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system(animate_sprite);
+    }
+}
+
 #[derive(Component)]
 pub struct SpriteAnimator {
     _atlas_handle: Handle<TextureAtlas>,
     start_frame: usize,
     end_frame: usize,
-    row_length: usize,
+    _row_length: usize,
     seconds_per_frame: f32,
     frame_timer: f32,
     pub should_loop: bool,
@@ -26,7 +34,7 @@ impl SpriteAnimator {
             _atlas_handle,
             start_frame,
             end_frame,
-            row_length,
+            _row_length: row_length,
             seconds_per_frame,
             frame_timer: 0.,
             should_loop,
@@ -43,14 +51,14 @@ impl SpriteAnimator {
         self.playing = false;
     }
 
-    pub fn set_row(&mut self, row_index: usize) {
-        self.start_frame = row_index * self.row_length;
-        self.end_frame = self.start_frame + self.row_length - 1;
+    pub fn _set_row(&mut self, row_index: usize) {
+        self.start_frame = row_index * self._row_length;
+        self.end_frame = self.start_frame + self._row_length - 1;
         self.restart_anim = true;
     }
 }
 
-pub fn animate_sprite(
+fn animate_sprite(
     time: Res<Time>,
     mut sprites: Query<(
         &mut SpriteAnimator, 

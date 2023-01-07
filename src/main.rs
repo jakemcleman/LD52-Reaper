@@ -1,40 +1,47 @@
-use bevy::prelude::*;
-use bevy_pixel_camera::{
-    PixelBorderPlugin, PixelCameraBundle, PixelCameraPlugin
-};
+// disable console on windows for release builds
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod sprite_anim;
-use sprite_anim::SpriteAnimator;
+use bevy::prelude::*;
+use bevy::window::WindowId;
+use bevy::winit::WinitWindows;
+use bevy::DefaultPlugins;
+use ld52_reaper_game::GamePlugin;
+use std::io::Cursor;
+use winit::window::Icon;
+use bevy_pkv::PkvStore;
+
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::BLACK))
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugin(PixelCameraPlugin)
-        .add_plugin(PixelBorderPlugin {
-            color: Color::BLACK,
-        })
-        .add_startup_system(setup)
-        .add_system(sprite_anim::animate_sprite)
+        .insert_resource(Msaa { samples: 1 })
+        .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
+        .insert_resource(PkvStore::new("VaguelyDamp", "ld52_reaper_game")) // ToDo
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                width: 800.,
+                height: 600.,
+                title: "ld52_reaper_game".to_string(), // ToDo
+                canvas: Some("#bevy".to_owned()),
+                ..Default::default()
+            },
+            ..default()
+        }).set(ImagePlugin::default_nearest()))
+        .add_plugin(GamePlugin)
+        .add_startup_system(set_window_icon)
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlases: ResMut<Assets<TextureAtlas>>,) {
-    // commands.spawn(Camera2dBundle {
-    //     camera_2d: Camera2d {
-    //         clear_color: ClearColorConfig::Custom(Color::BLACK),
-    //     },
-    //     ..Default::default()
-    // });
-    
-    commands.spawn(PixelCameraBundle::from_resolution(160, 120));
-
-    let texture_handle =  asset_server.load("sam1.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(42., 32.), 4, 1, None, None);
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    
-    commands.spawn(SpriteSheetBundle {
-        texture_atlas: texture_atlas_handle.clone(),
-        ..Default::default()
-    }).insert(SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true));
+// Sets the icon on windows and X11
+fn set_window_icon(windows: NonSend<WinitWindows>) {
+    let primary = windows.get_window(WindowId::primary()).unwrap();
+    let icon_buf = Cursor::new(include_bytes!(
+        "../build/macos/AppIcon.iconset/icon_256x256.png"
+    ));
+    if let Ok(image) = image::load(icon_buf, image::ImageFormat::Png) {
+        let image = image.into_rgba8();
+        let (width, height) = image.dimensions();
+        let rgba = image.into_raw();
+        let icon = Icon::from_rgba(rgba, width, height).unwrap();
+        primary.set_window_icon(Some(icon));
+    };
 }
