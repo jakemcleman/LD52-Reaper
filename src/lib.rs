@@ -35,10 +35,6 @@ enum GameState {
     Menu,
 }
 
-pub const VIEW_WIDTH: i32 = 320;
-pub const VIEW_HEIGHT: i32 = 240;
-pub const ASPECT_RATIO: f32 = (VIEW_WIDTH as f32) / (VIEW_HEIGHT as f32);
-
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
