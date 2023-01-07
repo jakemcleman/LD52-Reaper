@@ -4,7 +4,7 @@ use bevy_quickmenu::{
     style::Stylesheet, ActionTrait, Menu, MenuItem, MenuState, QuickMenuPlugin,
     ScreenTrait,
 };
-use bevy_pixel_camera::PixelCameraBundle;
+
 
 use crate::GameState;
 use crate::loading::SpriteAssets;
@@ -41,9 +41,6 @@ enum Actions {
 }
 
 fn setup_menu(mut commands: Commands, pkv: Res<PkvStore>, sprites: Res<SpriteAssets>) {
-    //commands.spawn(Camera2dBundle::default());
-    commands.spawn(PixelCameraBundle::from_resolution(160, 120));
-    
     let sheet = Stylesheet::default().with_background(BackgroundColor(Color::BLACK));
 
     commands.insert_resource(MenuState::new(
