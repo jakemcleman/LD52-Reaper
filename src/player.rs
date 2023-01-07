@@ -66,10 +66,10 @@ impl LdtkEntity for PlayerBundle {
                 "Gravity" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.gravity = value;
                 },
-                "Jump Power" => if let FieldValue::Float(Some(value)) = field.value {
+                "JumpPower" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.jump_speed = value;
                 },
-                "Jump Time" => if let FieldValue::Float(Some(value)) = field.value {
+                "JumpTime" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.jump_time = value;
                 },
                 unknown => println!("Unknown field \"{}\" on LDtk player object!", unknown),
@@ -87,7 +87,7 @@ impl LdtkEntity for PlayerBundle {
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(7., 6.),
             controller: KinematicCharacterController {
-                offset: CharacterLength::Relative(0.05),
+                offset: CharacterLength::Relative(0.1),
                 ..Default::default()
             },
             actor,
