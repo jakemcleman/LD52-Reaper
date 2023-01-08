@@ -1997,34 +1997,6 @@
 							]
 						},
 						{
-							"__identifier": "Ghost",
-							"__grid": [15,2],
-							"__pivot": [0.5,0.5],
-							"__tags": ["Enemy"],
-							"__tile": null,
-							"__smartColor": "#E43B3B",
-							"iid": "b573ae00-7820-11ed-8ad2-ab04511dd6bf",
-							"width": 16,
-							"height": 16,
-							"defUid": 48,
-							"px": [248,40],
-							"fieldInstances": [
-								{ "__identifier": "Speed", "__value": 40, "__type": "Float", "__tile": null, "defUid": 49, "realEditorValues": [] },
-								{ "__identifier": "Drag", "__value": 0.3, "__type": "Float", "__tile": null, "defUid": 50, "realEditorValues": [] },
-								{ "__identifier": "Acceleration", "__value": 1000, "__type": "Float", "__tile": null, "defUid": 51, "realEditorValues": [] },
-								{ "__identifier": "Decceleration", "__value": 2000, "__type": "Float", "__tile": null, "defUid": 52, "realEditorValues": [] },
-								{ "__identifier": "UpGravity", "__value": 400, "__type": "Float", "__tile": null, "defUid": 53, "realEditorValues": [] },
-								{ "__identifier": "DownGravity", "__value": 700, "__type": "Float", "__tile": null, "defUid": 54, "realEditorValues": [] },
-								{ "__identifier": "JumpPower", "__value": 1090, "__type": "Float", "__tile": null, "defUid": 55, "realEditorValues": [] },
-								{ "__identifier": "JumpTime", "__value": 0.2, "__type": "Float", "__tile": null, "defUid": 56, "realEditorValues": [] },
-								{ "__identifier": "AttackTime", "__value": 0.1, "__type": "Float", "__tile": null, "defUid": 57, "realEditorValues": [] },
-								{ "__identifier": "StartLeft", "__value": true, "__type": "Bool", "__tile": null, "defUid": 58, "realEditorValues": [{
-									"id": "V_Bool",
-									"params": [ true ]
-								}] }
-							]
-						},
-						{
 							"__identifier": "Soul",
 							"__grid": [26,8],
 							"__pivot": [0,0],
