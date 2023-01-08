@@ -8,12 +8,16 @@ use crate::GameState;
 pub struct WorldPlugin;
 
 pub struct ReloadWorldEvent;
+pub enum ChangeLevelEvent {
+    Index(usize),
+}
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App){
         app
             .insert_resource(LevelSelection::Index(0))
             .add_event::<ReloadWorldEvent>()
+            .add_event::<ChangeLevelEvent>()
             .add_plugin(LdtkPlugin)
             .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
             .insert_resource(RapierConfiguration {
@@ -21,12 +25,15 @@ impl Plugin for WorldPlugin {
                 ..Default::default()
             })
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_world))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(test_switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
             .register_ldtk_entity::<crate::ghost::GhostBundle>("Ghost")
+            .register_ldtk_entity::<crate::ghost::SoulBundle>("Soul")
             .register_ldtk_int_cell::<WallBundle>(1)
+            .register_ldtk_int_cell::<SpikeBundle>(2)
         ;
     }
 }
@@ -45,6 +52,17 @@ fn reload_level(
 }
 
 fn switch_level(
+    mut level_selection: ResMut<LevelSelection>,
+    mut change_event_listener: EventReader<ChangeLevelEvent>,
+) {
+    for ev in change_event_listener.iter() {
+        match ev {
+            ChangeLevelEvent::Index(i) => *level_selection = LevelSelection::Index(*i),
+        }
+    }
+}
+
+fn test_switch_level(
     mut level_selection: ResMut<LevelSelection>,
     input: Res<Input<KeyCode>>,
     ) {
@@ -69,6 +87,33 @@ pub struct Wall;
 #[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
 pub struct WallBundle {
     wall: Wall,
+}
+
+#[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
+pub struct SpikeBundle {
+    pub collider: Collider,
+    pub sensor: Sensor,
+    pub active_events: ActiveEvents,
+    pub rotation_constraints: LockedAxes,
+    pub death: crate::player::TouchDeath,
+}
+
+impl From<IntGridCell> for SpikeBundle {
+    fn from(int_grid_cell: IntGridCell) -> SpikeBundle {
+        let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+
+        if int_grid_cell.value == 2 {
+            SpikeBundle {
+                collider: Collider::cuboid(8., 4.),
+                sensor: Sensor,
+                rotation_constraints,
+                active_events: ActiveEvents::COLLISION_EVENTS,
+                ..Default::default()
+            }
+        } else {
+            SpikeBundle::default()
+        }
+    }
 }
 
 /// FRom bevy_ecs_ldtk platformer example

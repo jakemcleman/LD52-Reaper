@@ -1,8 +1,8 @@
 use crate::actions::Actions;
-use crate::GameState;
+use crate::{GameState, ghost};
 use crate::sprite_anim::SpriteAnimator;
 use crate::actor::*;
-use crate::world::ReloadWorldEvent;
+use crate::world::{ReloadWorldEvent, ChangeLevelEvent};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -12,7 +12,7 @@ pub struct PlayerPlugin;
 #[derive(Component, Default, Clone)]
 pub struct Player;
 
-#[derive(Component, Default, Clone)]
+#[derive(Component, Debug, Default, Clone)]
 pub struct TouchDeath;
 
 /// This plugin handles player related stuff like movement
@@ -27,6 +27,9 @@ impl Plugin for PlayerPlugin {
             )
             .add_system_set(SystemSet::on_update(GameState::Playing)
                 .with_system(player_death)
+            )
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(player_win)
             )
         ;
     }
@@ -152,12 +155,40 @@ fn player_inputs(
         actions.player_movement.y,
     );
     for (mut actor, status) in &mut player_query {
-        actor.move_input = input.x;
-        
         actor.jump_input = actions.jump;
         actor.can_jump = status.grounded || status.air_timer < actor.jump_time;
         
         actor.attack_input = actions.attack && !status.attacking;
+
+        actor.move_input = input.x;
+    }
+}
+
+fn player_win(
+    mut player_query: Query<&KinematicCharacterControllerOutput, With<Player>>,
+    souls_query: Query<(Option<&KinematicCharacterControllerOutput>, &ghost::Soul)>,
+    mut next_level_writer: EventWriter<ChangeLevelEvent>,
+) {
+    for controller_out in &mut player_query { 
+        for collision in controller_out.collisions.iter() {
+            if let Ok((_, soul)) = souls_query.get(collision.entity) {
+                next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
+                println!("reached level end");
+                return;
+            }
+        }
+    }
+    
+    for (maybe_controller, soul) in &souls_query {
+        if let Some(controller) = maybe_controller {
+            for collision in controller.collisions.iter() {
+                if let Ok(_) = player_query.get_mut(collision.entity) {
+                    next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
+                    println!("reached level end");
+                    return;
+                }
+            }
+        }
     }
 }
 
