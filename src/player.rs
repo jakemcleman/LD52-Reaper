@@ -145,6 +145,7 @@ impl LdtkEntity for PlayerBundle {
                jump: asset_server.load("audio/jump2.ogg"),
                land: asset_server.load("audio/land2.ogg"),
                attack: asset_server.load("audio/attack1.ogg"),
+               hit: asset_server.load("audio/hit.ogg"),
                death: asset_server.load("audio/death1.ogg"),
                victory: asset_server.load("audio/victory.ogg"),
            },
@@ -211,7 +212,8 @@ fn player_death(
     for (controller_out, mut status) in &mut player_query { 
         for collision in controller_out.collisions.iter() {
             if enemies_query.contains(collision.entity) {
-                println!("ded from player");
+                
+                println!("ded from player, touched {}", collision.entity.index());
                 reload_writer.send(ReloadWorldEvent);
                 status.event = Some(ActorEvent::Died);
                 

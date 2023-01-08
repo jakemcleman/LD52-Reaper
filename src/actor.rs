@@ -49,6 +49,7 @@ pub struct ActorAudio {
     pub jump: Handle<AudioSource>,
     pub land: Handle<AudioSource>,
     pub attack: Handle<AudioSource>,
+    pub hit: Handle<AudioSource>,
     pub death: Handle<AudioSource>,
     pub victory: Handle<AudioSource>,
 }
@@ -56,6 +57,7 @@ pub struct ActorAudio {
 #[derive(Component, Debug, Default, Clone)]
 pub struct Scythable {
     pub scythed: bool,
+    pub hit_from: Option<Vec2>,
 }
 
 #[derive(Clone)]
@@ -63,6 +65,7 @@ pub enum ActorEvent {
     Launched,
     Landed,
     Attack,
+    Hit,
     Died,
     Win,
 }
@@ -166,10 +169,10 @@ pub fn actor_attack(
             
             rapier_context.intersections_with_shape(
                 transform.translation.truncate() + attack_offset, 0., &shape, filter, |entity| -> bool {
-                    println!("intersected a collider!");
                     if let Ok(mut target) = target_query.get_mut(entity) {
-                        println!("hit something!!!!");
                         target.scythed = true;
+                        target.hit_from = Some(transform.translation.truncate());
+                        status.event = Some(ActorEvent::Hit);
                     }
                     true
                 });
@@ -273,6 +276,7 @@ fn actor_audio(
                 ActorEvent::Launched => audio.play(actor_sounds.jump.clone()),
                 ActorEvent::Landed => audio.play(actor_sounds.land.clone()),
                 ActorEvent::Attack => audio.play(actor_sounds.attack.clone()),
+                ActorEvent::Hit => audio.play(actor_sounds.hit.clone()),
                 ActorEvent::Died => audio.play(actor_sounds.death.clone()),
                 ActorEvent::Win => audio.play(actor_sounds.victory.clone()),
             };

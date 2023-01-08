@@ -81,6 +81,15 @@ fn test_switch_level(
     else if input.just_pressed(KeyCode::Key2) {
         *level_selection = LevelSelection::Index(1);
     }
+    else if input.just_pressed(KeyCode::Key3) {
+        *level_selection = LevelSelection::Index(2);
+    }
+    else if input.just_pressed(KeyCode::Key4) {
+        *level_selection = LevelSelection::Index(3);
+    }
+    else if input.just_pressed(KeyCode::Key5) {
+        *level_selection = LevelSelection::Index(4);
+    }
 }
 
 fn setup_world(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -135,27 +144,6 @@ pub struct WheatBundle {
     #[sprite_bundle("sprites/wheat_grown.png")]
     #[bundle]
     pub sprite_bundle: SpriteBundle,
-}
-
-impl From<IntGridCell> for WheatBundle {
-    fn from(int_grid_cell: IntGridCell) -> WheatBundle {
-        let rotation_constraints = LockedAxes::ROTATION_LOCKED;
-
-        if int_grid_cell.value == 2 {
-            WheatBundle {
-                collider: Collider::cuboid(8., 8.),
-                sensor: Sensor,
-                rotation_constraints,
-                active_events: ActiveEvents::COLLISION_EVENTS,
-                scythable: Scythable {
-                    scythed: false,
-                },
-                ..Default::default()
-            }
-        } else {
-            WheatBundle::default()
-        }
-    }
 }
 
 fn cut_wheat(

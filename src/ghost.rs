@@ -159,6 +159,7 @@ impl LdtkEntity for GhostBundle {
             death: TouchDeath,
             scythable: Scythable {
                 scythed: false,
+                hit_from: None,
             },
         }
     }
@@ -183,8 +184,8 @@ impl LdtkEntity for SoulBundle {
         let mut soul = Soul {
             can_move: false,
             next_level: 0,
-            move_speed: 80.,
-            accel: 20.,
+            move_speed: 120.,
+            accel: 40.,
             velocity: Vec2::ZERO,
             from_ghost: false,
         };
@@ -258,6 +259,12 @@ fn ghost_death(
                 4, 1, None, None);
             let texture_atlas_handle = texture_atlases.add(texture_atlas);
             
+            let escape_vec = if let Some(hit_from) = scythable.hit_from {
+                160. * (transform.translation.truncate() - hit_from).normalize_or_zero()
+            } else {
+                Vec2::new(0., 60.)
+            };
+            
             commands.spawn(SoulBundle {
                sprite_sheet_bundle: SpriteSheetBundle {
                    texture_atlas: texture_atlas_handle.clone(),
@@ -268,8 +275,8 @@ fn ghost_death(
                 soul: Soul { 
                     can_move: true,
                     accel: 80.,
-                    move_speed: 80.,
-                    velocity: Vec2::new(0., 80.),
+                    move_speed: 160.,
+                    velocity: escape_vec,
                     next_level: ghost.next_level,
                     from_ghost: true,
                 },
