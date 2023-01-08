@@ -239,38 +239,43 @@ fn soul_movement(
                 let comfortable_distance = 256.;
                 let dir_from_player = (transform.translation - player_transform.translation).truncate();
                 let dist_from_player = dir_from_player.length();
-                let flee_priority = (comfortable_distance / dist_from_player).powi(2);
+                let flee_priority = (comfortable_distance / dist_from_player).powi(3);
+                let flee_vec = dir_from_player.normalize_or_zero();
                 
-                let max_space = 128.;
+                let max_space = 256.;
                 let max_height = 64.;
                 
                 let cast_filter = QueryFilter::only_fixed();
-                let down_cast = rapier_context.cast_ray(transform.translation.truncate(), Vec2::NEG_Y, max_space, true, cast_filter);
-                let up_cast = rapier_context.cast_ray(transform.translation.truncate(), Vec2::Y, max_space, true, cast_filter);
-                let left_cast = rapier_context.cast_ray(transform.translation.truncate(), Vec2::NEG_X, max_space, true, cast_filter);
-                let right_cast = rapier_context.cast_ray(transform.translation.truncate(), Vec2::X, max_space, true, cast_filter);
-            
-                let down_space = if let Some((_, distance)) = down_cast { distance } else { max_space };
-                let up_space = if let Some((_, distance)) = up_cast { distance } else { max_space };
-                let left_space = if let Some((_, distance)) = left_cast { distance } else { max_space };
-                let right_space = if let Some((_, distance)) = right_cast { distance } else { max_space };
+                let shape = Collider::ball(4.9);
+                let shape_pos = transform.translation.truncate();
                 
-                println!("left: {0} right: {1} up: {2} down: {3}", left_space, right_space, up_space, down_space);
+                let down_cast = rapier_context.cast_shape (shape_pos, 0., Vec2::NEG_Y, &shape, max_space, cast_filter);
+                let up_cast = rapier_context.cast_shape   (shape_pos, 0., Vec2::Y,     &shape, max_space, cast_filter);
+                let left_cast = rapier_context.cast_shape (shape_pos, 0., Vec2::NEG_X, &shape, max_space, cast_filter);
+                let right_cast = rapier_context.cast_shape(shape_pos, 0., Vec2::X,     &shape, max_space, cast_filter);
+            
+                let down_space = if let Some((_, toi)) = down_cast { toi.toi } else { max_space };
+                let up_space = if let Some((_, toi)) = up_cast { toi.toi } else { max_space };
+                let left_space = if let Some((_, toi)) = left_cast { toi.toi} else { max_space };
+                let right_space = if let Some((_, toi)) = right_cast { toi.toi } else { max_space };
+                
+                //println!("left: {0} right: {1} up: {2} down: {3}", left_space, right_space, up_space, down_space);
                 
                 let min_space = down_space.min(up_space).min(left_space).min(right_space);
                 
-                let centering_vec = Vec2::new(right_space - left_space, up_space - down_space);
-                let centering_priority = max_space / min_space;
+                let centering_vec = Vec2::new(right_space - left_space, up_space - down_space).normalize_or_zero();
+                let centering_priority = max_space / (min_space + 1.);
                     
                 let height_restoring_vec = Vec2::new(0., -1. );
-                let height_priority = (down_space / max_height).powi(8);
+                let height_priority = (down_space / max_height).powi(4);
                 
                 let idle_vec = Vec2::new(f32::sin(time.elapsed_seconds()), f32::cos(time.elapsed_seconds())) * 2.;
                 
-                println!("flee: {0}, spacing: {1}, height fix: {2}", flee_priority, centering_priority, height_priority);
+                //println!("flee: {0}, spacing: {1}, height fix: {2}", flee_priority, centering_priority, height_priority);
+                //println!("flee vec: {0} spacing vec: {1}", flee_vec, centering_vec);
                 
                 let total_vec = (idle_vec
-                    + (flee_priority * dir_from_player)
+                    + (flee_priority * flee_vec)
                     + (centering_priority * centering_vec)
                     + (height_priority * height_restoring_vec)).normalize();
                     
