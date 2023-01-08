@@ -114,7 +114,11 @@ pub fn actor_status(
 ) {
     for (entity, transform, mut actor_status, controller_output) in &mut actor_query {
         if !actor_status.grounded && controller_output.grounded {
-            actor_status.event = Some(ActorEvent::Landed)
+            actor_status.event = Some(ActorEvent::Landed);
+            println!("landed");
+        }
+        else if actor_status.grounded && !controller_output.grounded {
+            println!("launched");
         }
         
         if actor_status.attacking {
@@ -131,7 +135,7 @@ pub fn actor_status(
             actor_status.air_timer += time.delta_seconds();
         }
         
-        let shape = Collider::capsule_y(4.9, 5.);
+        let shape = Collider::capsule_y(4.5, 4.5);
         let shape_pos = transform.translation.truncate();
         let filter = QueryFilter::new().exclude_sensors().exclude_collider(entity);
         let distance = 1.0;
@@ -139,6 +143,7 @@ pub fn actor_status(
         if rapier_context.cast_shape(
             shape_pos, 0., Vec2::new(distance, 0.), &shape, 1., filter).is_some() {
             actor_status.right_wall = true;
+            println!("right waall");
         }
         else {
             actor_status.right_wall = false;
@@ -147,6 +152,7 @@ pub fn actor_status(
         if rapier_context.cast_shape(
             shape_pos, 0., Vec2::new(-distance, 0.), &shape, 1., filter).is_some() {
             actor_status.left_wall = true;
+            println!("left waall");
             
         }
         else {
