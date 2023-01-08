@@ -286,13 +286,13 @@ fn ghost_death(
 
 fn soul_movement(
     time: Res<Time>,
-    mut soul_query: Query<(&Transform, &mut Soul, &mut KinematicCharacterController)>,
+    mut soul_query: Query<(Entity, &Transform, &mut Soul, &mut KinematicCharacterController)>,
     spike_query: Query<&crate::player::TouchDeath, Without<Ghost>>,
     player_query: Query<&Transform, With<crate::player::Player>>,
     rapier_context: Res<RapierContext>,
 ) {
     
-    for (transform, mut soul, mut controller) in &mut soul_query {
+    for (entity, transform, mut soul, mut controller) in &mut soul_query {
         if soul.can_move {
             if let Ok(player_transform) = player_query.get_single() {
                 let comfortable_distance = 256.;
@@ -304,7 +304,7 @@ fn soul_movement(
                 let max_space = 256.;
                 let max_height = 64.;
                 
-                let cast_filter = QueryFilter::only_fixed().exclude_sensors();
+                let cast_filter = QueryFilter::new().exclude_sensors().exclude_collider(entity);
                 let shape = Collider::ball(4.9);
                 let shape_pos = transform.translation.truncate();
                 
