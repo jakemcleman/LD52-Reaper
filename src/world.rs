@@ -3,7 +3,7 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashSet, HashMap};
 
-use crate::GameState;
+use crate::{GameState, actor::Scythable};
 
 pub struct WorldPlugin;
 
@@ -28,10 +28,12 @@ impl Plugin for WorldPlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(test_switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(cut_wheat))
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
             .register_ldtk_entity::<crate::ghost::GhostBundle>("Ghost")
             .register_ldtk_entity::<crate::ghost::SoulBundle>("Soul")
+            .register_ldtk_entity::<WheatBundle>("Wheat")
             .register_ldtk_int_cell::<WallBundle>(1)
             .register_ldtk_int_cell::<SpikeBundle>(2)
         ;
@@ -43,10 +45,17 @@ fn reload_level(
     level_query: Query<Entity, With<Handle<LdtkLevel>>>,
     input: Res<Input<KeyCode>>,
     reload_event_listener: EventReader<ReloadWorldEvent>,
+    souls_query: Query<(Entity, &crate::ghost::Soul)>,
 ) {
     if reload_event_listener.len() > 0 ||  input.just_pressed(KeyCode::R) {
         for level_entity in &level_query {
             commands.entity(level_entity).insert(Respawn);
+        }
+        
+        for (entity, soul) in &souls_query {
+            if soul.from_ghost {
+                commands.entity(entity).despawn_recursive();
+            }
         }
     }
 }
@@ -92,7 +101,7 @@ pub struct WallBundle {
 #[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
 pub struct SpikeBundle {
     pub collider: Collider,
-    pub sensor: Sensor,
+    pub rigid_body: RigidBody,
     pub active_events: ActiveEvents,
     pub rotation_constraints: LockedAxes,
     pub death: crate::player::TouchDeath,
@@ -104,8 +113,8 @@ impl From<IntGridCell> for SpikeBundle {
 
         if int_grid_cell.value == 2 {
             SpikeBundle {
-                collider: Collider::cuboid(8., 4.),
-                sensor: Sensor,
+                collider: Collider::cuboid(8., 8.),
+                rigid_body: RigidBody::Fixed,
                 rotation_constraints,
                 active_events: ActiveEvents::COLLISION_EVENTS,
                 ..Default::default()
@@ -115,6 +124,53 @@ impl From<IntGridCell> for SpikeBundle {
         }
     }
 }
+
+#[derive(Clone, Default, Bundle, LdtkEntity)]
+pub struct WheatBundle {
+    pub collider: Collider,
+    pub sensor: Sensor,
+    pub active_events: ActiveEvents,
+    pub rotation_constraints: LockedAxes,
+    pub scythable: Scythable,
+    #[sprite_bundle("sprites/wheat_grown.png")]
+    #[bundle]
+    pub sprite_bundle: SpriteBundle,
+}
+
+impl From<IntGridCell> for WheatBundle {
+    fn from(int_grid_cell: IntGridCell) -> WheatBundle {
+        let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+
+        if int_grid_cell.value == 2 {
+            WheatBundle {
+                collider: Collider::cuboid(8., 8.),
+                sensor: Sensor,
+                rotation_constraints,
+                active_events: ActiveEvents::COLLISION_EVENTS,
+                scythable: Scythable {
+                    scythed: false,
+                },
+                ..Default::default()
+            }
+        } else {
+            WheatBundle::default()
+        }
+    }
+}
+
+fn cut_wheat(
+    mut wheat_query: Query<(Entity, &mut Handle<Image>, &Scythable)>,
+    mut commands: Commands,
+    sprites: Res<crate::loading::SpriteAssets>,
+ ) {
+     for (entity, mut image, scythable) in &mut wheat_query {
+         if scythable.scythed {
+             *image = sprites.texture_wheat_chopped.clone();
+             
+             commands.entity(entity).remove::<Scythable>();
+         }
+     }
+ }
 
 /// FRom bevy_ecs_ldtk platformer example
 /// Spawns rapier collisions for the walls of a level

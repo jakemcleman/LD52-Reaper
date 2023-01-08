@@ -52,4 +52,10 @@ pub struct SpriteAssets {
     pub texture_sam: Handle<Image>,
     #[asset(path = "sprites/ghost.png")]
     pub texture_ghost: Handle<Image>,
+    #[asset(path = "sprites/soul.png")]
+    pub texture_soul: Handle<Image>,
+    #[asset(path = "sprites/wheat_chopped.png")]
+    pub texture_wheat_chopped: Handle<Image>,
+    #[asset(path = "sprites/wheat_grown.png")]
+    pub texture_wheat_grown: Handle<Image>,
 }

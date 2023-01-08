@@ -19,12 +19,14 @@ pub struct Actor {
     pub can_jump: bool,
     pub attack_input: bool,
     pub attack_time: f32,
+    pub attack_range: f32,
 }
 
 #[derive(Component, Default, Clone)]
 pub struct ActorStatus {
     pub grounded: bool,
     pub velocity: Vec2,
+    pub facing_left: bool,
     pub air_timer: f32,
     pub attacking: bool,
     pub attack_timer: f32,
@@ -51,6 +53,11 @@ pub struct ActorAudio {
     pub victory: Handle<AudioSource>,
 }
 
+#[derive(Component, Debug, Default, Clone)]
+pub struct Scythable {
+    pub scythed: bool,
+}
+
 #[derive(Clone)]
 pub enum ActorEvent {
     Launched,
@@ -65,6 +72,7 @@ impl Plugin for ActorPlugin {
         app
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_status).before(actor_movement))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_movement))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_attack))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_animations))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_audio))
         ;
@@ -86,6 +94,7 @@ impl Default for Actor {
             jump_input: false,
             attack_time: 0.2,
             attack_input: false,
+            attack_range: 16.0,
             can_jump: false,
         }
     }
@@ -117,7 +126,7 @@ pub fn actor_status(
         
         let shape = Collider::capsule_y(4.9, 5.);
         let shape_pos = transform.translation.truncate();
-        let filter = QueryFilter::only_fixed();
+        let filter = QueryFilter::only_fixed().exclude_sensors();
         let distance = 1.0;
         
         if rapier_context.cast_shape(
@@ -139,14 +148,57 @@ pub fn actor_status(
     }
 }
 
+pub fn actor_attack(
+    mut actor_query: Query<(&Transform, &Actor, &mut ActorStatus)>,
+    mut target_query: Query<&mut Scythable>,
+    rapier_context: Res<RapierContext>,
+) {
+    for (transform, actor, mut status) in &mut actor_query {
+        if status.attacking {
+            if status.attack_timer >= actor.attack_time {
+                status.attacking = false;
+            }
+            
+            let shape = Collider::ball(actor.attack_range);
+            let attack_distance = actor.attack_range + 5.01;
+            let attack_offset = if status.facing_left { -1. } else { 1. } * attack_distance * Vec2::X;
+            let filter = QueryFilter::new();
+            
+            rapier_context.intersections_with_shape(
+                transform.translation.truncate() + attack_offset, 0., &shape, filter, |entity| -> bool {
+                    println!("intersected a collider!");
+                    if let Ok(mut target) = target_query.get_mut(entity) {
+                        println!("hit something!!!!");
+                        target.scythed = true;
+                    }
+                    true
+                });
+        }
+        else if actor.attack_input {
+            status.attacking = true;
+            status.attack_timer = 0.;
+            status.event = Some(ActorEvent::Attack);
+        }
+    }
+}
+
 pub fn actor_movement(
     time: Res<Time>,
     mut actor_query: Query<(&Actor, &mut ActorStatus, &mut KinematicCharacterController)>,
+    
 ) {
     for (actor, mut status, mut controller) in &mut actor_query {
         let dir_match = actor.move_input.signum() == status.velocity.x.signum();
         let accel = if dir_match { actor.accel } else { actor.deccel };
         status.velocity.x += actor.move_input * accel * time.delta_seconds();
+        
+        // Track facing based on input seperately
+        if actor.move_input > 0.1 {
+            status.facing_left = false;
+        }
+        else if actor.move_input < -0.1 {
+            status.facing_left = true;
+        }
         
         if actor.move_input.abs() < 0.1 {
             status.velocity.x *= 1.0 - actor.drag;
@@ -177,14 +229,7 @@ pub fn actor_movement(
         
         controller.translation = Some(time.delta_seconds() * status.velocity);
         
-        if !status.attacking && actor.attack_input {
-            status.attacking = true;
-            status.attack_timer = 0.;
-            status.event = Some(ActorEvent::Attack);
-        }
-        else if status.attacking && status.attack_timer >= actor.attack_time {
-            status.attacking = false;
-        }
+        
     }
 }
 
@@ -214,7 +259,7 @@ fn actor_animations(
             }
         }
         
-        sprite.flip_x = actor.move_input < 0.;
+        sprite.flip_x = status.facing_left;
     }
 }
 

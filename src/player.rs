@@ -98,6 +98,9 @@ impl LdtkEntity for PlayerBundle {
                 "AttackTime" => if let FieldValue::Float(Some(value)) = field.value {
                     actor.attack_time = value;
                 },
+                "AttackRange" => if let FieldValue::Float(Some(value)) = field.value {
+                    actor.attack_range = value;
+                },
                 unknown => println!("Unknown field \"{}\" on LDtk player object!", unknown),
             }
         }
@@ -116,11 +119,13 @@ impl LdtkEntity for PlayerBundle {
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.2),
                 autostep: None,
+                filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                 ..Default::default()
             },
             actor,
             actor_status: ActorStatus {
                 grounded: false,
+                facing_left: false,
                 velocity: Vec2::ZERO,
                 air_timer: 0.,
                 attacking: false,
@@ -167,27 +172,30 @@ fn player_inputs(
 
 fn player_win(
     mut player_query: Query<(&KinematicCharacterControllerOutput, &mut ActorStatus), With<Player>>,
-    souls_query: Query<(Option<&KinematicCharacterControllerOutput>, &ghost::Soul)>,
+    souls_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>, &ghost::Soul)>,
     mut next_level_writer: EventWriter<ChangeLevelEvent>,
+    mut commands: Commands,
 ) {
     for (controller_out, mut status) in &mut player_query { 
         for collision in controller_out.collisions.iter() {
-            if let Ok((_, soul)) = souls_query.get(collision.entity) {
+            if let Ok((entity, _, soul)) = souls_query.get(collision.entity) {
                 next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
                 println!("reached level end");
                 status.event = Some(ActorEvent::Win);
+                commands.entity(entity).despawn_recursive();
                 return;
             }
         }
     }
     
-    for (maybe_controller, soul) in &souls_query {
+    for (entity, maybe_controller, soul) in &souls_query {
         if let Some(controller) = maybe_controller {
             for collision in controller.collisions.iter() {
                 if let Ok((_, mut status)) = player_query.get_mut(collision.entity) {
                     next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
                     println!("reached level end");
                     status.event = Some(ActorEvent::Win);
+                    commands.entity(entity).despawn_recursive();
                     return;
                 }
             }
@@ -206,6 +214,7 @@ fn player_death(
                 println!("ded from player");
                 reload_writer.send(ReloadWorldEvent);
                 status.event = Some(ActorEvent::Died);
+                
                 return;
             }
         }

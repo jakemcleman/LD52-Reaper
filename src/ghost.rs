@@ -1,4 +1,4 @@
-use crate::GameState;
+use crate::{GameState, actor};
 use crate::sprite_anim::SpriteAnimator;
 use crate::player::TouchDeath;
 use crate::actor::*;
@@ -11,6 +11,7 @@ pub struct GhostPlugin;
 #[derive(Component, Default, Clone)]
 pub struct Ghost {
     move_left: bool,
+    pub next_level: usize,
 }
 
 #[derive(Component, Default, Clone)]
@@ -19,6 +20,7 @@ pub struct Soul {
     move_speed: f32,
     accel: f32,
     velocity: Vec2,
+    pub from_ghost: bool,
     pub next_level: usize,
 }
 
@@ -34,6 +36,9 @@ impl Plugin for GhostPlugin {
             )
             .add_system_set(SystemSet::on_update(GameState::Playing)
                 .with_system(soul_movement)
+            )
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(ghost_death)
             )
         ;
     }
@@ -51,6 +56,7 @@ pub struct GhostBundle {
     pub actor: Actor,
     pub actor_status: ActorStatus,
     pub death: TouchDeath,
+    pub scythable: actor::Scythable,
 }
 
 #[derive(Clone, Default, Bundle)]
@@ -115,6 +121,9 @@ impl LdtkEntity for GhostBundle {
                 "StartLeft" => if let FieldValue::Bool(value) = field.value {
                     ghost.move_left = value;
                 },
+                "NextLevel" => if let FieldValue::Int(Some(value)) = field.value {
+                    ghost.next_level = value as usize;
+                },
                 unknown => println!("Unknown field \"{}\" on LDtk ghost object!", unknown),
             }
         }
@@ -132,11 +141,13 @@ impl LdtkEntity for GhostBundle {
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.2),
                 autostep: None,
+                filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                 ..Default::default()
             },
             actor,
             actor_status: ActorStatus {
                 grounded: false,
+                facing_left: false,
                 velocity: Vec2::ZERO,
                 air_timer: 0.,
                 attacking: false,
@@ -146,6 +157,9 @@ impl LdtkEntity for GhostBundle {
                 event: None,
             },
             death: TouchDeath,
+            scythable: Scythable {
+                scythed: false,
+            },
         }
     }
 }
@@ -172,6 +186,7 @@ impl LdtkEntity for SoulBundle {
             move_speed: 80.,
             accel: 20.,
             velocity: Vec2::ZERO,
+            from_ghost: false,
         };
         
         for field in entity_instance.field_instances.iter() {
@@ -226,6 +241,50 @@ fn ghost_movement(
     }
 }
 
+fn ghost_death(
+    ghost_query: Query<(Entity, &Transform, &Ghost, &Scythable)>,
+    mut commands: Commands,
+    sprites: Res<crate::loading::SpriteAssets>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    for (entity, transform, ghost, scythable) in &ghost_query {
+        if scythable.scythed {
+            commands.entity(entity).despawn_recursive();
+            
+            let texture_handle = sprites.texture_soul.clone();
+            let texture_atlas = TextureAtlas::from_grid(
+                texture_handle, 
+                Vec2::new(20., 20.), 
+                4, 1, None, None);
+            let texture_atlas_handle = texture_atlases.add(texture_atlas);
+            
+            commands.spawn(SoulBundle {
+               sprite_sheet_bundle: SpriteSheetBundle {
+                   texture_atlas: texture_atlas_handle.clone(),
+                   transform: Transform::from_translation(transform.translation),
+                   ..Default::default()
+               },
+               sprite_animator: crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true),
+                soul: Soul { 
+                    can_move: true,
+                    accel: 80.,
+                    move_speed: 80.,
+                    velocity: Vec2::new(0., 80.),
+                    next_level: ghost.next_level,
+                    from_ghost: true,
+                },
+                rigidbody: RigidBody::KinematicPositionBased,
+                collider: Collider::ball(5.),
+                controller: KinematicCharacterController {
+                    offset: CharacterLength::Absolute(0.1),
+                    autostep: None,
+                    ..Default::default()
+                },
+            });
+        }
+    }
+}
+
 fn soul_movement(
     time: Res<Time>,
     mut soul_query: Query<(&Transform, &mut Soul, &mut KinematicCharacterController)>,
@@ -245,7 +304,7 @@ fn soul_movement(
                 let max_space = 256.;
                 let max_height = 64.;
                 
-                let cast_filter = QueryFilter::only_fixed();
+                let cast_filter = QueryFilter::only_fixed().exclude_sensors();
                 let shape = Collider::ball(4.9);
                 let shape_pos = transform.translation.truncate();
                 
@@ -282,6 +341,17 @@ fn soul_movement(
                 let accel = soul.accel * time.delta_seconds();
                 soul.velocity += total_vec * accel;
                 soul.velocity = soul.velocity.clamp_length_max(soul.move_speed);
+                    
+                if (up_space < 1. && soul.velocity.y > 0.1)
+                    || (down_space < 1. && soul.velocity.y < -0.1) {
+                    soul.velocity.y = -0.5 * soul.velocity.y;
+                }
+                    
+                if (right_space < 1. && soul.velocity.x > 0.1)
+                    || (left_space < 1. && soul.velocity.x < -0.1) {
+                    soul.velocity.x = -0.5 * soul.velocity.x;
+                }
+                    
                     
                 controller.translation = Some(soul.velocity * time.delta_seconds());
             }
