@@ -90,6 +90,9 @@ fn test_switch_level(
     else if input.just_pressed(KeyCode::Key5) {
         *level_selection = LevelSelection::Index(4);
     }
+    else if input.just_pressed(KeyCode::Key6) {
+        *level_selection = LevelSelection::Index(5);
+    }
 }
 
 fn setup_world(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -119,8 +122,6 @@ impl LdtkIntCell for SpikeBundle {
     fn bundle_int_cell(_int_grid_cell: IntGridCell, _layer_instance: &LayerInstance) -> Self {
         let rotation_constraints = LockedAxes::ROTATION_LOCKED;
 
-        println!("BUILDING SPIKES");
-        
         SpikeBundle {
             collider: Collider::cuboid(6., 4.),
             rotation_constraints,
