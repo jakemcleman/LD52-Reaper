@@ -2,7 +2,7 @@ use crate::actions::Actions;
 use crate::{GameState, ghost};
 use crate::sprite_anim::SpriteAnimator;
 use crate::actor::*;
-use crate::world::{ReloadWorldEvent, ChangeLevelEvent};
+use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Door};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -27,6 +27,9 @@ impl Plugin for PlayerPlugin {
             )
             .add_system_set(SystemSet::on_update(GameState::Playing)
                 .with_system(player_death)
+            )
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(player_collect_soul)
             )
             .add_system_set(SystemSet::on_update(GameState::Playing)
                 .with_system(player_win)
@@ -117,7 +120,7 @@ impl LdtkEntity for PlayerBundle {
             collider: Collider::capsule_y(5., 5.),
             active_events: ActiveEvents::COLLISION_EVENTS,
             controller: KinematicCharacterController {
-                offset: CharacterLength::Absolute(0.2),
+                offset: CharacterLength::Absolute(0.5),
                 autostep: None,
                 filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                 ..Default::default()
@@ -147,6 +150,8 @@ impl LdtkEntity for PlayerBundle {
                attack: asset_server.load("audio/attack1.ogg"),
                hit: asset_server.load("audio/hit.ogg"),
                death: asset_server.load("audio/death1.ogg"),
+               pickup: asset_server.load("audio/pickup1.ogg"),
+               unlocked: asset_server.load("audio/unlocked.ogg"),
                victory: asset_server.load("audio/victory.ogg"),
            },
         }
@@ -171,36 +176,69 @@ fn player_inputs(
     }
 }
 
-fn player_win(
+fn player_collect_soul(
     mut player_query: Query<(&KinematicCharacterControllerOutput, &mut ActorStatus), With<Player>>,
-    souls_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>, &ghost::Soul)>,
-    mut next_level_writer: EventWriter<ChangeLevelEvent>,
+    souls_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>), With<ghost::Soul>>,
+    mut doors: Query<&mut Door>,
     mut commands: Commands,
 ) {
     for (controller_out, mut status) in &mut player_query { 
         for collision in controller_out.collisions.iter() {
-            if let Ok((entity, _, soul)) = souls_query.get(collision.entity) {
-                next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
-                println!("reached level end");
-                status.event = Some(ActorEvent::Win);
+            if let Ok((entity, _)) = souls_query.get(collision.entity) {
+                //next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
+                let mut door = doors.single_mut();
+                door.required_souls -= 1;
+                
+                if door.required_souls > 0 {
+                    status.event = Some(ActorEvent::Pickup); 
+                }
+                else {
+                    status.event = Some(ActorEvent::Unlock);
+                }
+                
                 commands.entity(entity).despawn_recursive();
                 return;
             }
         }
     }
     
-    for (entity, maybe_controller, soul) in &souls_query {
+    for (entity, maybe_controller) in &souls_query {
         if let Some(controller) = maybe_controller {
             for collision in controller.collisions.iter() {
                 if let Ok((_, mut status)) = player_query.get_mut(collision.entity) {
-                    next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
-                    println!("reached level end");
-                    status.event = Some(ActorEvent::Win);
+                    //next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
+                    status.event = Some(ActorEvent::Pickup);
                     commands.entity(entity).despawn_recursive();
+                    doors.single_mut().required_souls -= 1;
                     return;
                 }
             }
         }
+    }
+}
+
+fn player_win(
+    mut next_level_writer: EventWriter<ChangeLevelEvent>,
+    rapier_context: Res<RapierContext>,
+    doors: Query<&Door>,
+    mut player_query: Query<(&Transform, &mut ActorStatus), With<Player>>,
+) {
+    for (transform, mut status) in &mut player_query { 
+        let shape = Collider::capsule_y(5.5, 5.5);
+        let filter = QueryFilter::new();
+        let shape_pos = transform.translation.truncate();
+        
+        rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
+            if let Ok(door) = doors.get(entity) {
+                if door.required_souls == 0 {
+                    println!("win player");
+                    next_level_writer.send(ChangeLevelEvent::Index(door.next_level));
+                    status.event = Some(ActorEvent::Win);
+                    return false; // no need to keep looking
+                }
+            }
+            true
+        });
     }
 }
 

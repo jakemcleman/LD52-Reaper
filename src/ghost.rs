@@ -11,7 +11,6 @@ pub struct GhostPlugin;
 #[derive(Component, Default, Clone)]
 pub struct Ghost {
     move_left: bool,
-    pub next_level: usize,
 }
 
 #[derive(Component, Default, Clone)]
@@ -21,7 +20,6 @@ pub struct Soul {
     accel: f32,
     velocity: Vec2,
     pub from_ghost: bool,
-    pub next_level: usize,
 }
 
 /// This plugin handles player related stuff like movement
@@ -121,9 +119,6 @@ impl LdtkEntity for GhostBundle {
                 "StartLeft" => if let FieldValue::Bool(value) = field.value {
                     ghost.move_left = value;
                 },
-                "NextLevel" => if let FieldValue::Int(Some(value)) = field.value {
-                    ghost.next_level = value as usize;
-                },
                 unknown => println!("Unknown field \"{}\" on LDtk ghost object!", unknown),
             }
         }
@@ -183,7 +178,6 @@ impl LdtkEntity for SoulBundle {
         
         let mut soul = Soul {
             can_move: false,
-            next_level: 0,
             move_speed: 120.,
             accel: 40.,
             velocity: Vec2::ZERO,
@@ -194,9 +188,6 @@ impl LdtkEntity for SoulBundle {
             match field.identifier.as_str() {
                 "Move" => if let FieldValue::Bool(value) = field.value {
                     soul.can_move = value;
-                },
-                "NextLevel" => if let FieldValue::Int(Some(value)) = field.value {
-                    soul.next_level = value as usize;
                 },
                 "Speed" => if let FieldValue::Float(Some(value)) = field.value {
                     soul.move_speed = value;
@@ -221,6 +212,7 @@ impl LdtkEntity for SoulBundle {
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.1),
                 autostep: None,
+                filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                 ..Default::default()
             },
         }
@@ -243,12 +235,12 @@ fn ghost_movement(
 }
 
 fn ghost_death(
-    ghost_query: Query<(Entity, &Transform, &Ghost, &Scythable)>,
+    ghost_query: Query<(Entity, &Transform, &Scythable), With<Ghost>>,
     mut commands: Commands,
     sprites: Res<crate::loading::SpriteAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    for (entity, transform, ghost, scythable) in &ghost_query {
+    for (entity, transform, scythable) in &ghost_query {
         if scythable.scythed {
             commands.entity(entity).despawn_recursive();
             
@@ -277,7 +269,6 @@ fn ghost_death(
                     accel: 80.,
                     move_speed: 160.,
                     velocity: escape_vec,
-                    next_level: ghost.next_level,
                     from_ghost: true,
                 },
                 rigidbody: RigidBody::KinematicPositionBased,

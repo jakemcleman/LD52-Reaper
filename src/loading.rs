@@ -24,8 +24,8 @@ impl Plugin for LoadingPlugin {
 
 #[derive(AssetCollection, Resource)]
 pub struct FontAssets {
-    #[asset(path = "fonts/FiraSans-Bold.ttf")]
-    pub fira_sans: Handle<Font>,
+    #[asset(path = "fonts/PressStart2P.ttf")]
+    pub press_start: Handle<Font>,
 }
 
 #[derive(AssetCollection, Resource)]
@@ -42,6 +42,10 @@ pub struct AudioAssets {
     pub death: Handle<AudioSource>,
     #[asset(path = "audio/victory.ogg")]
     pub win: Handle<AudioSource>,
+    #[asset(path = "audio/pickup1.ogg")]
+    pub pickup: Handle<AudioSource>,
+    #[asset(path = "audio/unlocked.ogg")]
+    pub unlocked: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Resource)]
@@ -60,4 +64,8 @@ pub struct SpriteAssets {
     pub texture_wheat_chopped: Handle<Image>,
     #[asset(path = "sprites/wheat_grown.png")]
     pub texture_wheat_grown: Handle<Image>,
+    #[asset(path = "sprites/door_closed.png")]
+    pub texture_door_closed: Handle<Image>,
+    #[asset(path = "sprites/door_open.png")]
+    pub texture_door_open: Handle<Image>,
 }

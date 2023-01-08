@@ -7,9 +7,9 @@ on:
 
 env:
   # update with the name of the main binary
-  binary: ld52_reaper_game
+  binary: ld52_reaper
   add_binaries_to_github_release: true
-  itch_target: aevek/ld52-reaper-game
+  itch_target: aevek/reaper
 
 
 jobs:

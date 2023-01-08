@@ -5,22 +5,22 @@ use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use ld52_reaper_game::GamePlugin;
+use ld52_reaper::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
-use bevy_pkv::PkvStore;
+// use bevy_pkv::PkvStore;
 
 
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
-        .insert_resource(PkvStore::new("VaguelyDamp", "ld52_reaper_game")) // ToDo
+        // .insert_resource(PkvStore::new("VaguelyDamp", "ld52_reaper_game")) // ToDo
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
                 width: 1280.,
                 height: 800.,
-                title: "ld52_reaper_game".to_string(), // ToDo
+                title: "LD52 - Reaper".to_string(), // ToDo
                 canvas: Some("#bevy".to_owned()),
                 ..Default::default()
             },

@@ -1,5 +1,5 @@
 use bevy::{prelude::*, app::AppExit};
-use bevy_pkv::PkvStore;
+// use bevy_pkv::PkvStore;
 use crate::GameState;
 
 #[derive(Debug)]
@@ -28,15 +28,16 @@ fn event_reader(
     mut event_reader: EventReader<UiEvent>, 
     mut exit: EventWriter<AppExit>,
     mut state: ResMut<State<GameState>>,
-    mut pkv: ResMut<PkvStore>,
+    // mut pkv: ResMut<PkvStore>,
     ) {
     for event in event_reader.iter() {
         match event {
             UiEvent::QuitGame => exit.send(AppExit),
             UiEvent::NewGame => state.set(GameState::Playing).unwrap(),
             UiEvent::LoadGame => state.set(GameState::Playing).unwrap(),
-            UiEvent::Boolean1Changed(new_val) => pkv.set("boolean1", new_val).expect("Failed to store setting"),
-            UiEvent::Boolean2Changed(new_val) => pkv.set("boolean2", new_val).expect("Failed to store setting"),
+            _ => ()
+            // UiEvent::Boolean1Changed(new_val) => pkv.set("boolean1", new_val).expect("Failed to store setting"),
+            // UiEvent::Boolean2Changed(new_val) => pkv.set("boolean2", new_val).expect("Failed to store setting"),
         }
     }
 }

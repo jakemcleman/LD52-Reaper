@@ -51,6 +51,8 @@ pub struct ActorAudio {
     pub attack: Handle<AudioSource>,
     pub hit: Handle<AudioSource>,
     pub death: Handle<AudioSource>,
+    pub pickup: Handle<AudioSource>,
+    pub unlocked: Handle<AudioSource>,
     pub victory: Handle<AudioSource>,
 }
 
@@ -68,6 +70,8 @@ pub enum ActorEvent {
     Hit,
     Died,
     Win,
+    Pickup,
+    Unlock,
 }
 
 impl Plugin for ActorPlugin {
@@ -278,6 +282,8 @@ fn actor_audio(
                 ActorEvent::Attack => audio.play(actor_sounds.attack.clone()),
                 ActorEvent::Hit => audio.play(actor_sounds.hit.clone()),
                 ActorEvent::Died => audio.play(actor_sounds.death.clone()),
+                ActorEvent::Pickup => audio.play(actor_sounds.pickup.clone()),
+                ActorEvent::Unlock => audio.play(actor_sounds.unlocked.clone()),
                 ActorEvent::Win => audio.play(actor_sounds.victory.clone()),
             };
             

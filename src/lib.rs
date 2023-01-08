@@ -1,7 +1,7 @@
 mod actions;
 mod loading;
 mod player;
-mod mainmenu;
+// mod mainmenu;
 mod ui_events;
 mod sprite_anim;
 mod world;
@@ -11,7 +11,7 @@ mod ghost;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;
-use crate::mainmenu::MainMenuPlugin;
+// use crate::mainmenu::MainMenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::ghost::GhostPlugin;
 use crate::world::WorldPlugin;
@@ -48,7 +48,7 @@ impl Plugin for GamePlugin {
             .add_plugin(WorldPlugin)
             .add_plugin(LoadingPlugin)
             .add_plugin(UiEventPlugin)
-            .add_plugin(MainMenuPlugin)
+            // .add_plugin(MainMenuPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(PlayerPlugin)
             .add_plugin(GhostPlugin)
