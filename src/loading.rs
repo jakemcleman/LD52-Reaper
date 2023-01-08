@@ -38,6 +38,8 @@ pub struct AudioAssets {
     pub attack: Handle<AudioSource>,
     #[asset(path = "audio/death1.ogg")]
     pub death: Handle<AudioSource>,
+    #[asset(path = "audio/victory.ogg")]
+    pub win: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Resource)]

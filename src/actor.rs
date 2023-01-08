@@ -48,6 +48,7 @@ pub struct ActorAudio {
     pub land: Handle<AudioSource>,
     pub attack: Handle<AudioSource>,
     pub death: Handle<AudioSource>,
+    pub victory: Handle<AudioSource>,
 }
 
 #[derive(Clone)]
@@ -56,6 +57,7 @@ pub enum ActorEvent {
     Landed,
     Attack,
     Died,
+    Win,
 }
 
 impl Plugin for ActorPlugin {
@@ -227,6 +229,7 @@ fn actor_audio(
                 ActorEvent::Landed => audio.play(actor_sounds.land.clone()),
                 ActorEvent::Attack => audio.play(actor_sounds.attack.clone()),
                 ActorEvent::Died => audio.play(actor_sounds.death.clone()),
+                ActorEvent::Win => audio.play(actor_sounds.victory.clone()),
             };
             
             // Clear event now its been processed

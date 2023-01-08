@@ -141,6 +141,7 @@ impl LdtkEntity for PlayerBundle {
                land: asset_server.load("audio/land2.ogg"),
                attack: asset_server.load("audio/attack1.ogg"),
                death: asset_server.load("audio/death1.ogg"),
+               victory: asset_server.load("audio/victory.ogg"),
            },
         }
     }
@@ -165,15 +166,16 @@ fn player_inputs(
 }
 
 fn player_win(
-    mut player_query: Query<&KinematicCharacterControllerOutput, With<Player>>,
+    mut player_query: Query<(&KinematicCharacterControllerOutput, &mut ActorStatus), With<Player>>,
     souls_query: Query<(Option<&KinematicCharacterControllerOutput>, &ghost::Soul)>,
     mut next_level_writer: EventWriter<ChangeLevelEvent>,
 ) {
-    for controller_out in &mut player_query { 
+    for (controller_out, mut status) in &mut player_query { 
         for collision in controller_out.collisions.iter() {
             if let Ok((_, soul)) = souls_query.get(collision.entity) {
                 next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
                 println!("reached level end");
+                status.event = Some(ActorEvent::Win);
                 return;
             }
         }
@@ -182,9 +184,10 @@ fn player_win(
     for (maybe_controller, soul) in &souls_query {
         if let Some(controller) = maybe_controller {
             for collision in controller.collisions.iter() {
-                if let Ok(_) = player_query.get_mut(collision.entity) {
+                if let Ok((_, mut status)) = player_query.get_mut(collision.entity) {
                     next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
                     println!("reached level end");
+                    status.event = Some(ActorEvent::Win);
                     return;
                 }
             }
