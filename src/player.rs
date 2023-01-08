@@ -205,33 +205,24 @@ fn player_win(
 }
 
 fn player_death(
-    mut player_query: Query<(&KinematicCharacterControllerOutput, &mut ActorStatus), With<Player>>,
-    enemies_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>), With<TouchDeath>>,
+    mut player_query: Query<(&Transform, &mut ActorStatus), With<Player>>,
+    enemies_query: Query<Entity, With<TouchDeath>>,
     mut reload_writer: EventWriter<ReloadWorldEvent>,
+    rapier_context: Res<RapierContext>,
 ) {
-    for (controller_out, mut status) in &mut player_query { 
-        for collision in controller_out.collisions.iter() {
-            if enemies_query.contains(collision.entity) {
-                
-                println!("ded from player, touched {}", collision.entity.index());
+    for (transform, mut status) in &mut player_query { 
+        let shape = Collider::capsule_y(5.5, 5.5);
+        let filter = QueryFilter::new();
+        let shape_pos = transform.translation.truncate();
+        
+        rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
+            if let Ok(_touched_ent) = enemies_query.get(entity) {
+                println!("ded player");
                 reload_writer.send(ReloadWorldEvent);
                 status.event = Some(ActorEvent::Died);
-                
-                return;
+                return false; // no need to keep looking
             }
-        }
-    }
-    
-    for (_en, maybe_controller) in &enemies_query {
-        if let Some(controller_out) = maybe_controller {
-            for collision in controller_out.collisions.iter() {
-                if let Ok((_, mut status)) = player_query.get_mut(collision.entity) {
-                    println!("ded from enemy");
-                    reload_writer.send(ReloadWorldEvent);
-                    status.event = Some(ActorEvent::Died);
-                    return;
-                }
-            }
-        }
+            true
+        });
     }
 }

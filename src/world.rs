@@ -107,31 +107,28 @@ pub struct WallBundle {
     wall: Wall,
 }
 
-#[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
+#[derive(Clone, Debug, Default, Bundle)]
 pub struct SpikeBundle {
     pub collider: Collider,
-    pub rigid_body: RigidBody,
     pub active_events: ActiveEvents,
     pub rotation_constraints: LockedAxes,
     pub death: crate::player::TouchDeath,
 }
 
-impl From<IntGridCell> for SpikeBundle {
-    fn from(int_grid_cell: IntGridCell) -> SpikeBundle {
+impl LdtkIntCell for SpikeBundle {
+    fn bundle_int_cell(_int_grid_cell: IntGridCell, _layer_instance: &LayerInstance) -> Self {
         let rotation_constraints = LockedAxes::ROTATION_LOCKED;
 
-        if int_grid_cell.value == 2 {
-            SpikeBundle {
-                collider: Collider::cuboid(8., 8.),
-                rigid_body: RigidBody::Fixed,
-                rotation_constraints,
-                active_events: ActiveEvents::COLLISION_EVENTS,
-                ..Default::default()
-            }
-        } else {
-            SpikeBundle::default()
+        println!("BUILDING SPIKES");
+        
+        SpikeBundle {
+            collider: Collider::cuboid(6., 4.),
+            rotation_constraints,
+            active_events: ActiveEvents::COLLISION_EVENTS,
+            ..Default::default()
         }
     }
+    
 }
 
 #[derive(Clone, Default, Bundle, LdtkEntity)]
