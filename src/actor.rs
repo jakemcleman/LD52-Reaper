@@ -109,10 +109,10 @@ impl Default for Actor {
 
 pub fn actor_status(
     time: Res<Time>,
-    mut actor_query: Query<(&Transform, &mut ActorStatus, &KinematicCharacterControllerOutput)>,
+    mut actor_query: Query<(Entity, &Transform, &mut ActorStatus, &KinematicCharacterControllerOutput)>,
     rapier_context: Res<RapierContext>,
 ) {
-    for (transform, mut actor_status, controller_output) in &mut actor_query {
+    for (entity, transform, mut actor_status, controller_output) in &mut actor_query {
         if !actor_status.grounded && controller_output.grounded {
             actor_status.event = Some(ActorEvent::Landed)
         }
@@ -133,7 +133,7 @@ pub fn actor_status(
         
         let shape = Collider::capsule_y(4.9, 5.);
         let shape_pos = transform.translation.truncate();
-        let filter = QueryFilter::only_fixed().exclude_sensors();
+        let filter = QueryFilter::new().exclude_sensors().exclude_collider(entity);
         let distance = 1.0;
         
         if rapier_context.cast_shape(

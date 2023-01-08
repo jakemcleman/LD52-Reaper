@@ -276,6 +276,7 @@ fn ghost_death(
                 controller: KinematicCharacterController {
                     offset: CharacterLength::Absolute(0.1),
                     autostep: None,
+                    filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                     ..Default::default()
                 },
             });
@@ -286,6 +287,7 @@ fn ghost_death(
 fn soul_movement(
     time: Res<Time>,
     mut soul_query: Query<(&Transform, &mut Soul, &mut KinematicCharacterController)>,
+    spike_query: Query<&crate::player::TouchDeath, Without<Ghost>>,
     player_query: Query<&Transform, With<crate::player::Player>>,
     rapier_context: Res<RapierContext>,
 ) {
@@ -311,10 +313,10 @@ fn soul_movement(
                 let left_cast = rapier_context.cast_shape (shape_pos, 0., Vec2::NEG_X, &shape, max_space, cast_filter);
                 let right_cast = rapier_context.cast_shape(shape_pos, 0., Vec2::X,     &shape, max_space, cast_filter);
             
-                let down_space = if let Some((_, toi)) = down_cast { toi.toi } else { max_space };
-                let up_space = if let Some((_, toi)) = up_cast { toi.toi } else { max_space };
-                let left_space = if let Some((_, toi)) = left_cast { toi.toi} else { max_space };
-                let right_space = if let Some((_, toi)) = right_cast { toi.toi } else { max_space };
+                let down_space = if let Some((entity, toi)) = down_cast { if spike_query.contains(entity) { 0.25 * toi.toi} else { toi.toi } } else { max_space };
+                let up_space = if let Some((entity, toi)) = up_cast { if spike_query.contains(entity) { 0.25 * toi.toi} else { toi.toi } } else { max_space };
+                let left_space = if let Some((entity, toi)) = left_cast { if spike_query.contains(entity) { 0.25 * toi.toi} else { toi.toi } } else { max_space };
+                let right_space = if let Some((entity, toi)) = right_cast { if spike_query.contains(entity) { 0.25 * toi.toi} else { toi.toi } } else { max_space };
                 
                 //println!("left: {0} right: {1} up: {2} down: {3}", left_space, right_space, up_space, down_space);
                 
@@ -324,7 +326,7 @@ fn soul_movement(
                 let centering_priority = max_space / (min_space + 1.);
                     
                 let height_restoring_vec = Vec2::new(0., -1. );
-                let height_priority = (down_space / max_height).powi(4);
+                let height_priority = (down_space / max_height).powi(3);
                 
                 let idle_vec = Vec2::new(f32::sin(time.elapsed_seconds()), f32::cos(time.elapsed_seconds())) * 2.;
                 

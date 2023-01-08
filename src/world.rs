@@ -25,7 +25,6 @@ impl Plugin for WorldPlugin {
                 ..Default::default()
             })
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_world))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(test_switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(cut_wheat))
@@ -40,6 +39,13 @@ impl Plugin for WorldPlugin {
             .register_ldtk_int_cell::<WallBundle>(1)
             .register_ldtk_int_cell::<SpikeBundle>(2)
         ;
+        
+        #[cfg(debug_assertions)]
+        {
+            app
+                .add_system_set(SystemSet::on_update(GameState::Playing).with_system(test_switch_level))
+            ;
+        }
     }
 }
 
