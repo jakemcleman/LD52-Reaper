@@ -1,6 +1,6 @@
 [package]
 name = "ld52_reaper"
-version = "0.4.1"
+version = "0.4.2"
 publish = false
 authors = ["Jake McLeman"]
 edition = "2021"
