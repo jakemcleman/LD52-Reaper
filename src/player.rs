@@ -137,6 +137,7 @@ impl LdtkEntity for PlayerBundle {
                jump: asset_server.load("audio/jump2.ogg"),
                land: asset_server.load("audio/land2.ogg"),
                attack: asset_server.load("audio/attack1.ogg"),
+               death: asset_server.load("audio/death1.ogg"),
            },
         }
     }
@@ -161,15 +162,16 @@ fn player_inputs(
 }
 
 fn player_death(
-    player_query: Query<&KinematicCharacterControllerOutput, With<Player>>,
+    mut player_query: Query<(&KinematicCharacterControllerOutput, &mut ActorStatus), With<Player>>,
     enemies_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>), With<TouchDeath>>,
     mut reload_writer: EventWriter<ReloadWorldEvent>,
 ) {
-    for controller_out in &player_query { 
+    for (controller_out, mut status) in &mut player_query { 
         for collision in controller_out.collisions.iter() {
             if enemies_query.contains(collision.entity) {
                 println!("ded from player");
                 reload_writer.send(ReloadWorldEvent);
+                status.event = Some(ActorEvent::Died);
                 return;
             }
         }
@@ -178,9 +180,10 @@ fn player_death(
     for (_en, maybe_controller) in &enemies_query {
         if let Some(controller_out) = maybe_controller {
             for collision in controller_out.collisions.iter() {
-                if player_query.contains(collision.entity) {
+                if let Ok((_, mut status)) = player_query.get_mut(collision.entity) {
                     println!("ded from enemy");
                     reload_writer.send(ReloadWorldEvent);
+                    status.event = Some(ActorEvent::Died);
                     return;
                 }
             }
