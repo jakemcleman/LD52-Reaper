@@ -224,20 +224,15 @@ pub fn actor_movement(
             status.velocity.x = 0.;
         }
         
-        if actor.jump_input {
-            if actor.can_jump {
-                status.velocity.y += actor.jump_speed * time.delta_seconds();
+        if actor.can_jump && actor.jump_input {
+            status.velocity.y += actor.jump_speed * time.delta_seconds();
                 
-                if status.grounded {
-                    status.event = Some(ActorEvent::Launched);
-                }
-            }
-            else {
-                status.velocity.y -= actor.up_gravity * time.delta_seconds();
+            if status.grounded {
+                status.event = Some(ActorEvent::Launched);
             }
         }    
         else {
-            status.velocity.y -= actor.down_gravity * time.delta_seconds();
+            status.velocity.y -= if status.velocity.y > 0. { actor.down_gravity } else { actor.up_gravity } * time.delta_seconds();
         }
         
         controller.translation = Some(time.delta_seconds() * status.velocity);

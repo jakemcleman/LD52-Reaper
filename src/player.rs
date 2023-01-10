@@ -187,7 +187,10 @@ fn player_collect_soul(
             if let Ok((entity, _)) = souls_query.get(collision.entity) {
                 //next_level_writer.send(ChangeLevelEvent::Index(soul.next_level));
                 let mut door = doors.single_mut();
-                door.required_souls -= 1;
+                // catch for an inconvenient rollover bug
+                if door.required_souls > 0 {
+                    door.required_souls -= 1;
+                }
                 
                 if door.required_souls > 0 {
                     status.event = Some(ActorEvent::Pickup); 

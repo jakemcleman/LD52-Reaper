@@ -25,7 +25,11 @@ fn main() {
                 ..Default::default()
             },
             ..default()
-        }).set(ImagePlugin::default_nearest()))
+        }).set(ImagePlugin::default_nearest())
+        .set(AssetPlugin {
+            watch_for_changes: cfg!(debug_assertions),
+            ..Default::default()
+        }))
         .add_plugin(GamePlugin)
         .add_startup_system(set_window_icon)
         .run();
