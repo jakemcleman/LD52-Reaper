@@ -7,6 +7,11 @@ use crate::{GameState, actor::Scythable};
 
 pub struct WorldPlugin;
 
+#[derive(Clone, Eq, PartialEq, Debug, Default, Component)]
+pub struct Labeled {
+    pub name: String,
+}
+
 pub struct ReloadWorldEvent;
 pub enum ChangeLevelEvent {
     Index(usize),
@@ -134,6 +139,7 @@ pub struct DoorBundle {
     #[bundle]
     pub sprite_bundle: SpriteBundle,
     pub collider: Collider,
+    pub label: Labeled,
     pub sensor: Sensor,
     pub active_events: ActiveEvents,
     pub door: Door,
@@ -169,6 +175,7 @@ impl LdtkEntity for DoorBundle {
                 ..Default::default()
             },
             collider: Collider::cuboid(8., 16.),
+            label: Labeled { name: String::from("door to ") + door.next_level.to_string().as_str() },
             sensor: Sensor,
             active_events: ActiveEvents::COLLISION_EVENTS,
             door
@@ -224,6 +231,7 @@ pub struct WallBundle {
 #[derive(Clone, Debug, Default, Bundle)]
 pub struct SpikeBundle {
     pub collider: Collider,
+    pub label: Labeled,
     pub active_events: ActiveEvents,
     pub rotation_constraints: LockedAxes,
     pub death: crate::player::TouchDeath,
@@ -235,6 +243,7 @@ impl LdtkIntCell for SpikeBundle {
 
         SpikeBundle {
             collider: Collider::cuboid(6., 4.),
+            label: Labeled { name: String::from("spikes") },
             rotation_constraints,
             active_events: ActiveEvents::COLLISION_EVENTS,
             ..Default::default()
@@ -246,6 +255,7 @@ impl LdtkIntCell for SpikeBundle {
 #[derive(Clone, Default, Bundle, LdtkEntity)]
 pub struct WheatBundle {
     pub collider: Collider,
+    pub label: Labeled,
     pub sensor: Sensor,
     pub active_events: ActiveEvents,
     pub rotation_constraints: LockedAxes,
@@ -422,6 +432,7 @@ pub fn spawn_wall_collision(
                             ))
                             .insert(RigidBody::Fixed)
                             .insert(Friction::new(1.0))
+                            .insert(Labeled { name: String::from("wall") })
                             .insert(Transform::from_xyz(
                                 (wall_rect.left + wall_rect.right + 1) as f32 * grid_size as f32
                                     / 2.,

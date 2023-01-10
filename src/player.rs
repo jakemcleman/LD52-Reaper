@@ -2,7 +2,7 @@ use crate::actions::Actions;
 use crate::{GameState, ghost};
 use crate::sprite_anim::SpriteAnimator;
 use crate::actor::*;
-use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Door};
+use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Door, Labeled};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -46,6 +46,7 @@ pub struct PlayerBundle {
     pub player: Player,
     pub rigidbody: RigidBody,
     pub collider: Collider,
+    pub label: Labeled,
     pub active_events: ActiveEvents,
     pub controller: KinematicCharacterController,
     pub actor: Actor,
@@ -118,6 +119,7 @@ impl LdtkEntity for PlayerBundle {
             player: Player,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5., 5.),
+            label: Labeled { name: String::from("player") },
             active_events: ActiveEvents::COLLISION_EVENTS,
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.5),

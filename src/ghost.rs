@@ -1,3 +1,4 @@
+use crate::world::Labeled;
 use crate::{GameState, actor};
 use crate::sprite_anim::SpriteAnimator;
 use crate::player::TouchDeath;
@@ -50,6 +51,7 @@ pub struct GhostBundle {
     pub ghost: Ghost,
     pub rigidbody: RigidBody,
     pub collider: Collider,
+    pub label: Labeled,
     pub controller: KinematicCharacterController,
     pub actor: Actor,
     pub actor_status: ActorStatus,
@@ -65,6 +67,7 @@ pub struct SoulBundle {
     pub soul: Soul,
     pub rigidbody: RigidBody,
     pub collider: Collider,
+    pub label: Labeled,
     pub controller: KinematicCharacterController,
 }
 
@@ -133,6 +136,7 @@ impl LdtkEntity for GhostBundle {
             ghost,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5.0,5.0),
+            label: Labeled { name: String::from("ghost") },
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.2),
                 autostep: None,
@@ -209,6 +213,7 @@ impl LdtkEntity for SoulBundle {
             soul,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::ball(5.),
+            label: Labeled { name: String::from("soul") },
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.1),
                 autostep: None,
@@ -273,6 +278,7 @@ fn ghost_death(
                 },
                 rigidbody: RigidBody::KinematicPositionBased,
                 collider: Collider::ball(5.),
+                label: Labeled { name: String::from("spawned soul") },
                 controller: KinematicCharacterController {
                     offset: CharacterLength::Absolute(0.1),
                     autostep: None,

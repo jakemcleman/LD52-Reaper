@@ -115,10 +115,6 @@ pub fn actor_status(
     for (entity, transform, mut actor_status, controller_output) in &mut actor_query {
         if !actor_status.grounded && controller_output.grounded {
             actor_status.event = Some(ActorEvent::Landed);
-            println!("landed");
-        }
-        else if actor_status.grounded && !controller_output.grounded {
-            println!("launched");
         }
         
         if actor_status.attacking {
@@ -130,6 +126,7 @@ pub fn actor_status(
         
         if actor_status.grounded {
             actor_status.air_timer = 0.;
+            actor_status.velocity.y = 0.;
         }
         else {
             actor_status.air_timer += time.delta_seconds();
@@ -140,20 +137,19 @@ pub fn actor_status(
         let filter = QueryFilter::new().exclude_sensors().exclude_collider(entity);
         let distance = 1.0;
         
-        if rapier_context.cast_shape(
-            shape_pos, 0., Vec2::new(distance, 0.), &shape, 1., filter).is_some() {
+        if let Some((_, _)) = rapier_context.cast_shape(
+            shape_pos, 0., Vec2::new(distance, 0.), &shape, 1., filter
+            ) {
             actor_status.right_wall = true;
-            println!("right waall");
         }
         else {
             actor_status.right_wall = false;
         }
         
-        if rapier_context.cast_shape(
-            shape_pos, 0., Vec2::new(-distance, 0.), &shape, 1., filter).is_some() {
+        if let Some((_, _)) = rapier_context.cast_shape(
+            shape_pos, 0., Vec2::new(-distance, 0.), &shape, 1., filter
+            ) {
             actor_status.left_wall = true;
-            println!("left waall");
-            
         }
         else {
             actor_status.left_wall = false;
@@ -231,13 +227,11 @@ pub fn actor_movement(
                 status.event = Some(ActorEvent::Launched);
             }
         }    
-        else {
+        else if !status.grounded {
             status.velocity.y -= if status.velocity.y > 0. { actor.down_gravity } else { actor.up_gravity } * time.delta_seconds();
         }
         
         controller.translation = Some(time.delta_seconds() * status.velocity);
-        
-        
     }
 }
 

@@ -10,7 +10,6 @@ use std::io::Cursor;
 use winit::window::Icon;
 // use bevy_pkv::PkvStore;
 
-
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
