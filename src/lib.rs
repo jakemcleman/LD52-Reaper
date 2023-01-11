@@ -8,6 +8,8 @@ mod world;
 mod camera;
 mod actor;
 mod ghost;
+mod soul;
+mod pickup;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;

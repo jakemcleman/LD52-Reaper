@@ -59,7 +59,7 @@ pub fn set_movement_actions(
         actions.jump = actions.jump || gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
     }
     
-    actions.attack = keyboard_input.just_pressed(KeyCode::Q) || keyboard_input.just_pressed(KeyCode::E);
+    actions.attack = keyboard_input.just_pressed(KeyCode::Q) || keyboard_input.just_pressed(KeyCode::E) || keyboard_input.just_pressed(KeyCode::M);
     
     for gamepad in gamepad_input.iter() { 
         if actions.attack {

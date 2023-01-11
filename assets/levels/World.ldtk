@@ -7919,7 +7919,7 @@
 							"px": [160,64],
 							"fieldInstances": [
 								{ "__identifier": "NextLevel", "__value": 11, "__type": "Int", "__tile": null, "defUid": 80, "realEditorValues": [{ "id": "V_Int", "params": [11] }] },
-								{ "__identifier": "SoulsNeeded", "__value": 5, "__type": "Int", "__tile": null, "defUid": 81, "realEditorValues": [{ "id": "V_Int", "params": [5] }] }
+								{ "__identifier": "SoulsNeeded", "__value": 6, "__type": "Int", "__tile": null, "defUid": 81, "realEditorValues": [{ "id": "V_Int", "params": [6] }] }
 							]
 						},
 						{

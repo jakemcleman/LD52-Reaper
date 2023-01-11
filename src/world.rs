@@ -38,7 +38,7 @@ impl Plugin for WorldPlugin {
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
             .register_ldtk_entity::<crate::ghost::GhostBundle>("Ghost")
-            .register_ldtk_entity::<crate::ghost::SoulBundle>("Soul")
+            .register_ldtk_entity::<crate::soul::SoulBundle>("Soul")
             .register_ldtk_entity::<DoorBundle>("Door")
             .register_ldtk_entity::<WheatBundle>("Wheat")
             .register_ldtk_int_cell::<WallBundle>(1)
@@ -59,7 +59,7 @@ fn reload_level(
     level_query: Query<Entity, With<Handle<LdtkLevel>>>,
     input: Res<Input<KeyCode>>,
     reload_event_listener: EventReader<ReloadWorldEvent>,
-    souls_query: Query<(Entity, &crate::ghost::Soul)>,
+    souls_query: Query<(Entity, &crate::soul::Soul)>,
 ) {
     if reload_event_listener.len() > 0 ||  input.just_pressed(KeyCode::R) {
         for level_entity in &level_query {

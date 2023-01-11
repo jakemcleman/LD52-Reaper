@@ -180,7 +180,7 @@ fn player_inputs(
 
 fn player_collect_soul(
     mut player_query: Query<(&KinematicCharacterControllerOutput, &mut ActorStatus), With<Player>>,
-    souls_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>), With<ghost::Soul>>,
+    souls_query: Query<(Entity, Option<&KinematicCharacterControllerOutput>), With<crate::soul::Soul>>,
     mut doors: Query<&mut Door>,
     mut commands: Commands,
 ) {
