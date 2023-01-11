@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use crate::{GameState, sprite_anim::SpriteAnimator};
+use crate::{GameState, sprite_anim::SpriteAnimator, soul::CollectedSoulEvent, pickup::{PickupCollector, PickupEvent}};
 
 pub struct ActorPlugin;
 
@@ -82,6 +82,7 @@ impl Plugin for ActorPlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_attack))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_animations))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_audio))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_pickup_effects))
         ;
     }
 }
@@ -153,6 +154,17 @@ pub fn actor_status(
         }
         else {
             actor_status.left_wall = false;
+        }
+    }
+}
+
+pub fn actor_pickup_effects(
+    mut soul_pickup_events: EventReader<PickupEvent>,
+    mut actor_statuses: Query<&mut ActorStatus, With<PickupCollector>>,
+) {
+    for ev in soul_pickup_events.iter() {
+        if let Ok(mut status) = actor_statuses.get_mut(ev.collector_entity) {
+            status.event = Some(ActorEvent::Pickup);
         }
     }
 }

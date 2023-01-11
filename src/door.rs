@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{world::Labeled, GameState, soul::CollectedSoulEvent};
+use crate::{world::Labeled, GameState, soul::CollectedSoulEvent, sprite_anim::SpriteAnimator};
 
 pub struct DoorPlugin;
 
@@ -15,7 +15,8 @@ pub struct Door {
 #[derive(Clone, Default, Bundle)]
 pub struct DoorBundle {
     #[bundle]
-    pub sprite_bundle: SpriteBundle,
+    pub sprite_sheet_bundle: SpriteSheetBundle,
+    pub sprite_animator: SpriteAnimator,
     pub collider: Collider,
     pub label: Labeled,
     pub sensor: Sensor,
@@ -42,7 +43,7 @@ impl LdtkEntity for DoorBundle {
         _tileset: Option<&Handle<Image>>,
         _tileset_definition: Option<&TilesetDefinition>,
         asset_server: &AssetServer,
-        _texture_atlases: &mut Assets<TextureAtlas>,
+        texture_atlases: &mut Assets<TextureAtlas>,
     ) -> Self {
         let mut door = Door::default();
         
@@ -58,12 +59,20 @@ impl LdtkEntity for DoorBundle {
             }
         }
         
+        let texture_handle = asset_server.load("sprites/door_closed.png");
+        let texture_atlas = TextureAtlas::from_grid(
+            texture_handle, 
+            Vec2::new(16., 32.), 
+            4, 1, None, None);
+        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+        
         DoorBundle {
-            sprite_bundle: SpriteBundle {
+            sprite_sheet_bundle: SpriteSheetBundle {
                 transform: Transform::from_translation(Vec3::new(0., 0., 0.5)),
-                texture: asset_server.load("sprites/door_closed.png"),
+                texture_atlas: texture_atlas_handle,
                 ..Default::default()
             },
+            sprite_animator: SpriteAnimator::new(0, 3, 4, 0.2, true),
             collider: Collider::cuboid(8., 16.),
             label: Labeled { name: String::from("door to ") + door.next_level.to_string().as_str() },
             sensor: Sensor,
@@ -98,8 +107,9 @@ fn add_souls_needed_text(
 fn update_souls_needed_text(
     mut soul_events: EventReader<CollectedSoulEvent>,
     mut text: Query<(&Parent, &mut Text)>,
-    mut doors: Query<(&mut Door, &mut Handle<Image>)>,
-    sprites: Res<crate::loading::SpriteAssets>,
+    mut doors: Query<(&mut Door, &mut Handle<TextureAtlas>)>,
+    asset_server: Res<AssetServer>, 
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>, 
 ) {
     for _ in soul_events.iter() {
         for (parent, mut text) in text.iter_mut() {
@@ -109,7 +119,14 @@ fn update_souls_needed_text(
                     text.sections[0].value = door.required_souls.to_string();
                     
                     if door.required_souls == 0 {
-                        *image_handle = sprites.texture_door_open.clone();
+                        
+                        let texture_handle = asset_server.load("sprites/door_open.png");
+                        let texture_atlas = TextureAtlas::from_grid(
+                            texture_handle, 
+                            Vec2::new(16., 32.), 
+                            4, 1, None, None);
+                        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+                        *image_handle = texture_atlas_handle.clone();
                     }
                 }
             }

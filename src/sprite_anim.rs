@@ -11,7 +11,6 @@ impl Plugin for SpriteAnimationPlugin {
 
 #[derive(Component, Default, Clone)]
 pub struct SpriteAnimator {
-    _atlas_handle: Handle<TextureAtlas>,
     start_frame: usize,
     end_frame: usize,
     row_length: usize,
@@ -25,7 +24,6 @@ pub struct SpriteAnimator {
 
 impl SpriteAnimator {
     pub fn new(
-        _atlas_handle: Handle<TextureAtlas>,
         start_frame: usize,
         end_frame: usize,
         row_length: usize,
@@ -33,7 +31,6 @@ impl SpriteAnimator {
         should_loop: bool,
     ) -> SpriteAnimator {
         SpriteAnimator {
-            _atlas_handle,
             start_frame,
             end_frame,
             row_length,

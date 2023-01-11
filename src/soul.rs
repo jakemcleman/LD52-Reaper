@@ -97,11 +97,11 @@ impl LdtkEntity for SoulBundle {
         
         SoulBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle.clone(),
+                texture_atlas: texture_atlas_handle,
                 transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                 ..Default::default()
             },
-            sprite_animator: crate::sprite_anim::SpriteAnimator::new(texture_atlas_handle.clone(), 0, 3, 4, 0.2, true),
+            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
             soul,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::ball(5.),
