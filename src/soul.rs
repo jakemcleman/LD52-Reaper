@@ -2,7 +2,11 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{sprite_anim::SpriteAnimator, world::Labeled};
+use crate::{GameState, pickup};
+use crate::pickup::PickupEvent;
+use crate::{sprite_anim::SpriteAnimator, world::Labeled, pickup::{Pickup, PickupType}};
+
+pub struct SoulPlugin;
 
 #[derive(Component, Default, Clone)]
 pub struct Soul {
@@ -24,6 +28,32 @@ pub struct SoulBundle {
     pub sensor: Sensor,
     pub label: Labeled,
     pub controller: KinematicCharacterController,
+    pub pickup: Pickup,
+}
+
+pub struct CollectedSoulEvent;
+
+impl Plugin for SoulPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_event::<CollectedSoulEvent>()
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(soul_movement))
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(soul_pickups).after(crate::pickup::check_for_pickups))
+        ;
+    }
+}
+
+fn soul_pickups(
+    mut pickup_reader: EventReader<PickupEvent>,
+    mut soul_writer: EventWriter<CollectedSoulEvent>,
+) {
+    for pickup_ev in pickup_reader.iter() {
+        if pickup_ev.pickup_type == pickup::PickupType::Soul {
+            soul_writer.send(CollectedSoulEvent);
+        }
+    }
 }
 
 impl LdtkEntity for SoulBundle {
@@ -83,11 +113,12 @@ impl LdtkEntity for SoulBundle {
                 filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                 ..Default::default()
             },
+            pickup: Pickup { pickup_type: Some(PickupType::Soul), },
         }
     }
 }
 
-pub fn soul_movement(
+fn soul_movement(
     time: Res<Time>,
     mut soul_query: Query<(Entity, &Transform, &mut Soul, &mut KinematicCharacterController)>,
     spike_query: Query<&crate::player::TouchDeath, Without<crate::ghost::Ghost>>,

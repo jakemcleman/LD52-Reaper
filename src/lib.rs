@@ -10,6 +10,7 @@ mod actor;
 mod ghost;
 mod soul;
 mod pickup;
+mod door;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;
@@ -18,11 +19,13 @@ use crate::player::PlayerPlugin;
 use crate::ghost::GhostPlugin;
 use crate::world::WorldPlugin;
 use crate::camera::CameraPlugin;
+use crate::pickup::PickupPlugin;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
+use soul::SoulPlugin;
 use sprite_anim::SpriteAnimationPlugin;
 use ui_events::UiEventPlugin;
 use actor::ActorPlugin;
@@ -39,7 +42,7 @@ enum GameState {
     // During this State the actual game logic is executed
     Playing,
     // Here the menu is drawn and waiting for player interaction
-    Menu,
+    // Menu,
 }
 
 pub struct GamePlugin;
@@ -53,7 +56,9 @@ impl Plugin for GamePlugin {
             // .add_plugin(MainMenuPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(PlayerPlugin)
+            .add_plugin(PickupPlugin)
             .add_plugin(GhostPlugin)
+            .add_plugin(SoulPlugin)
             .add_plugin(ActorPlugin)
             .add_plugin(SpriteAnimationPlugin)
             .add_plugin(CameraPlugin)

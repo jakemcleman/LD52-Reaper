@@ -25,9 +25,6 @@ impl Plugin for GhostPlugin {
                 .before(actor_movement)
             )
             .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(crate::soul::soul_movement)
-            )
-            .add_system_set(SystemSet::on_update(GameState::Playing)
                 .with_system(ghost_death)
             )
         ;
@@ -207,6 +204,7 @@ fn ghost_death(
                     filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                     ..Default::default()
                 },
+                pickup: crate::pickup::Pickup { pickup_type: Some(crate::pickup::PickupType::Soul )},
             });
         }
     }

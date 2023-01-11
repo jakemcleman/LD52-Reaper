@@ -3,7 +3,7 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashSet, HashMap};
 
-use crate::{GameState, actor::Scythable};
+use crate::{GameState, actor::Scythable, door};
 
 pub struct WorldPlugin;
 
@@ -25,6 +25,7 @@ impl Plugin for WorldPlugin {
             .add_event::<ChangeLevelEvent>()
             .add_plugin(LdtkPlugin)
             .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+            .add_plugin(door::DoorPlugin)
             .insert_resource(RapierConfiguration {
                 gravity: Vec2::new(0.0, -2000.0),
                 ..Default::default()
@@ -33,13 +34,11 @@ impl Plugin for WorldPlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(cut_wheat))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(add_souls_needed_text))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(update_souls_needed_text))
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
             .register_ldtk_entity::<crate::ghost::GhostBundle>("Ghost")
             .register_ldtk_entity::<crate::soul::SoulBundle>("Soul")
-            .register_ldtk_entity::<DoorBundle>("Door")
+            .register_ldtk_entity::<crate::door::DoorBundle>("Door")
             .register_ldtk_entity::<WheatBundle>("Wheat")
             .register_ldtk_int_cell::<WallBundle>(1)
             .register_ldtk_int_cell::<SpikeBundle>(2)
@@ -126,98 +125,6 @@ fn setup_world(mut commands: Commands, asset_server: Res<AssetServer>) {
         ldtk_handle: asset_server.load("levels/World.ldtk"),
         ..Default::default()
     });
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
-pub struct Door {
-    pub next_level: usize,
-    pub required_souls: usize,
-}
-
-#[derive(Clone, Default, Bundle)]
-pub struct DoorBundle {
-    #[bundle]
-    pub sprite_bundle: SpriteBundle,
-    pub collider: Collider,
-    pub label: Labeled,
-    pub sensor: Sensor,
-    pub active_events: ActiveEvents,
-    pub door: Door,
-}
-
-impl LdtkEntity for DoorBundle {
-    fn bundle_entity(
-        entity_instance: &EntityInstance,
-        _layer_instance: &LayerInstance,
-        _tileset: Option<&Handle<Image>>,
-        _tileset_definition: Option<&TilesetDefinition>,
-        asset_server: &AssetServer,
-        _texture_atlases: &mut Assets<TextureAtlas>,
-    ) -> Self {
-        let mut door = Door::default();
-        
-        for field in entity_instance.field_instances.iter() {
-            match field.identifier.as_str() {
-                "NextLevel" => if let FieldValue::Int(Some(value)) = field.value {
-                    door.next_level = value as usize;
-                },
-                "SoulsNeeded" => if let FieldValue::Int(Some(value)) = field.value {
-                    door.required_souls = value as usize;
-                },
-                unknown => println!("Unknown field \"{}\" on LDtk door object!", unknown),
-            }
-        }
-        
-        DoorBundle {
-            sprite_bundle: SpriteBundle {
-                transform: Transform::from_translation(Vec3::new(0., 0., 0.5)),
-                texture: asset_server.load("sprites/door_closed.png"),
-                ..Default::default()
-            },
-            collider: Collider::cuboid(8., 16.),
-            label: Labeled { name: String::from("door to ") + door.next_level.to_string().as_str() },
-            sensor: Sensor,
-            active_events: ActiveEvents::COLLISION_EVENTS,
-            door
-        }
-    }
-}
-
-fn add_souls_needed_text(
-    doors: Query<(Entity, &Door), Added<Door>>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>, 
-) {
-    let font = asset_server.load("fonts/PressStart2P.ttf");
-    let text_style = TextStyle {
-        font: font.clone(),
-        font_size: 16.,
-        color: Color::WHITE,
-    };
-    
-    for (entity, door) in &doors {
-        commands.spawn(Text2dBundle {
-            text: Text::from_section(door.required_souls.to_string(), text_style.clone()).with_alignment(TextAlignment::CENTER),
-            transform: Transform::from_xyz(0., 28., -1.),
-            ..Default::default()
-        }).set_parent(entity);
-    }
-}
-
-fn update_souls_needed_text(
-    mut text: Query<(&Parent, &mut Text)>,
-    mut doors: Query<(&Door, &mut Handle<Image>)>,
-    sprites: Res<crate::loading::SpriteAssets>,
-) {
-    for (parent, mut text) in text.iter_mut() {
-        if let Ok((door, mut image_handle)) = doors.get_mut(parent.get()) {
-            text.sections[0].value = door.required_souls.to_string();
-            
-            if door.required_souls == 0 {
-                *image_handle = sprites.texture_door_open.clone();
-            }
-        }
-    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
