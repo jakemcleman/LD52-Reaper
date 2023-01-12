@@ -132,6 +132,7 @@ impl LdtkEntity for GhostBundle {
                 left_wall: false,
                 right_wall: false,
                 event: None,
+                last_dt: 1.,
             },
             death: TouchDeath,
             scythable: Scythable {

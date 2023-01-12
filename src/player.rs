@@ -108,6 +108,8 @@ impl LdtkEntity for PlayerBundle {
             }
         }
         
+        println!("jump {}", actor.jump_speed);
+        
         PlayerBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
@@ -137,6 +139,7 @@ impl LdtkEntity for PlayerBundle {
                 left_wall: false,
                 right_wall: false,
                 event: None,
+                last_dt: 1.,
             },
            actor_anim: ActorAnimationStates {
                idle_row: 0,

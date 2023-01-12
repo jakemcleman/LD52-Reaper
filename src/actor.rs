@@ -33,6 +33,7 @@ pub struct ActorStatus {
     pub left_wall: bool,
     pub right_wall: bool,
     pub event: Option<ActorEvent>,
+    pub last_dt: f32,
 }
 
 #[derive(Component, Default, Clone)]
@@ -123,7 +124,7 @@ pub fn actor_status(
         }
         
         actor_status.grounded = controller_output.grounded;
-        actor_status.velocity = controller_output.effective_translation / time.delta_seconds();
+        actor_status.velocity = controller_output.effective_translation / actor_status.last_dt;
         
         if actor_status.grounded {
             actor_status.air_timer = 0.;
@@ -233,7 +234,7 @@ pub fn actor_movement(
         }
         
         if actor.can_jump && actor.jump_input {
-            status.velocity.y += actor.jump_speed * time.delta_seconds();
+            status.velocity.y = actor.jump_speed;
                 
             if status.grounded {
                 status.event = Some(ActorEvent::Launched);
@@ -244,6 +245,7 @@ pub fn actor_movement(
         }
         
         controller.translation = Some(time.delta_seconds() * status.velocity);
+        status.last_dt = time.delta_seconds();
     }
 }
 
