@@ -52,6 +52,7 @@ pub struct PlayerBundle {
     pub actor_anim: ActorAnimationStates,
     pub actor_audio: ActorAudio,
     pub pickup_collector: crate::pickup::PickupCollector,
+    pub squashy: Squashy,
 }
 
 impl LdtkEntity for PlayerBundle {
@@ -159,6 +160,17 @@ impl LdtkEntity for PlayerBundle {
                victory: asset_server.load("audio/victory.ogg"),
            },
            pickup_collector: crate::pickup::PickupCollector,
+           squashy: Squashy {
+               base_scale: Vec2::ONE,
+               restore_time: 0.1,
+               squash_scale: Vec2::new(1.1, 0.9),
+               squash_time: 0.05,
+               stretch_scale: Vec2::new(0.9, 1.1),
+               stretch_time: 0.05,
+               state: None,
+               state_time: 0.,
+               from_pos: Vec2::ONE,
+           }
         }
     }
 }

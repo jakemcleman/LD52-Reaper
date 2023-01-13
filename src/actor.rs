@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::Anchor};
 use bevy_rapier2d::prelude::*;
 use crate::{GameState, sprite_anim::SpriteAnimator, soul::CollectedSoulEvent, pickup::{PickupCollector, PickupEvent}};
 
@@ -63,6 +63,26 @@ pub struct Scythable {
     pub hit_from: Option<Vec2>,
 }
 
+#[derive(Debug, Clone)]
+pub enum SquashStretchState {
+    Restore,
+    Squash,
+    Stretch,
+}
+
+#[derive(Component, Debug, Default, Clone)]
+pub struct Squashy {
+    pub base_scale: Vec2,
+    pub restore_time: f32,
+    pub squash_scale: Vec2,
+    pub squash_time: f32,
+    pub stretch_scale: Vec2,
+    pub stretch_time: f32,
+    pub state: Option<SquashStretchState>,
+    pub state_time: f32,
+    pub from_pos: Vec2,
+}
+
 #[derive(Clone)]
 pub enum ActorEvent {
     Launched,
@@ -75,6 +95,40 @@ pub enum ActorEvent {
     Unlock,
 }
 
+impl Squashy {
+    pub fn change_state(&mut self, next: Option<SquashStretchState>) {
+        self.from_pos = self.get_current_state_end_pos();
+        self.state = next;
+        self.state_time = 0.;
+    }
+    
+    fn get_current_state_max_time(&self) -> f32 {
+        if let Some(state) = &self.state {
+            match state {
+                SquashStretchState::Restore => self.restore_time,
+                SquashStretchState::Squash => self.squash_time,
+                SquashStretchState::Stretch => self.stretch_time,
+            }
+        }
+        else {
+            f32::MAX
+        }
+    }
+    
+    fn get_current_state_end_pos(&self) -> Vec2 {
+        if let Some(state) = self.state.clone() {
+            match state {
+                SquashStretchState::Restore => self.base_scale,
+                SquashStretchState::Squash => self.squash_scale,
+                SquashStretchState::Stretch => self.stretch_scale,
+            }
+        }
+        else {
+            self.base_scale
+        }
+    }
+}
+
 impl Plugin for ActorPlugin {
     fn build(&self, app: &mut App) {
         app
@@ -82,8 +136,19 @@ impl Plugin for ActorPlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_movement))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_attack))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_animations))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_audio))
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(actor_audio)
+                .with_system(actor_squash_events)
+                .before(actor_event_clear)
+                .after(actor_status)
+                .after(actor_movement)
+                .after(actor_attack)
+            )
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_event_clear))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_pickup_effects))
+            .add_system_set(SystemSet::on_update(GameState::Playing)
+                .with_system(squash_states)
+                .with_system(squash_animation))
         ;
     }
 }
@@ -116,6 +181,7 @@ pub fn actor_status(
 ) {
     for (entity, transform, mut actor_status, controller_output) in &mut actor_query {
         if !actor_status.grounded && controller_output.grounded {
+            println!("firing landed event!");
             actor_status.event = Some(ActorEvent::Landed);
         }
         
@@ -280,10 +346,10 @@ fn actor_animations(
 }
 
 fn actor_audio(
-    mut actor_query: Query<(&mut ActorStatus, &ActorAudio)>,
+    actor_query: Query<(&ActorStatus, &ActorAudio)>,
     audio: Res<Audio>
 ) {
-    for (mut status, actor_sounds) in &mut actor_query {
+    for (status, actor_sounds) in &actor_query {
         if let Some(event) = &status.event {
             match event {
                 ActorEvent::Launched => audio.play(actor_sounds.jump.clone()),
@@ -295,9 +361,67 @@ fn actor_audio(
                 ActorEvent::Unlock => audio.play(actor_sounds.unlocked.clone()),
                 ActorEvent::Win => audio.play(actor_sounds.victory.clone()),
             };
-            
-            // Clear event now its been processed
-            status.event = None;
         }
+    }
+}
+
+fn actor_squash_events(
+    mut actor_query: Query<(&ActorStatus, &mut Squashy)>,
+) {
+    for (status, mut squish) in actor_query.iter_mut() {
+        if let Some(event) = &status.event {
+            match event {
+                ActorEvent::Launched => squish.change_state(Some(SquashStretchState::Stretch)),
+                ActorEvent::Landed => squish.change_state(Some(SquashStretchState::Squash)),
+                _ => ()
+            };
+        }
+    }
+}
+
+fn squash_states(
+    time: Res<Time>,
+    mut squish_query: Query<&mut Squashy>,
+) {
+    for mut squish in squish_query.iter_mut() {
+        if let Some(squish_state) = squish.state.clone() {
+            squish.state_time += time.delta_seconds();
+
+            if squish.state_time > squish.get_current_state_max_time() {
+                match squish_state {
+                    SquashStretchState::Restore => squish.change_state(None),
+                    SquashStretchState::Squash => squish.change_state(Some(SquashStretchState::Restore)),
+                    SquashStretchState::Stretch => squish.change_state(Some(SquashStretchState::Restore)),
+                };
+                squish.state_time = 0.;
+            }
+        }
+    }
+}
+
+fn squash_animation(
+    mut squish_query: Query<(&Squashy, &mut TextureAtlasSprite)>,
+) {
+    for (squish, mut sprite) in squish_query.iter_mut() {
+        if squish.state.is_some() {
+            let t = squish.state_time / squish.get_current_state_max_time();
+            let scale = squish.from_pos.lerp(squish.get_current_state_end_pos(), t);
+            sprite.custom_size = Some(32. * scale);
+            
+            let y_offset = scale.y - 1.;
+            sprite.anchor = Anchor::Custom(Vec2::new(0., -y_offset));
+        }
+        else {
+            sprite.custom_size = None;
+            sprite.anchor = Anchor::Center;
+        }
+    }
+}
+
+pub fn actor_event_clear(
+    mut actor_query: Query<&mut ActorStatus>
+) {
+    for mut status in &mut actor_query {
+        status.event = None;   
     }
 }
