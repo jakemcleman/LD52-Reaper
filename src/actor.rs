@@ -118,7 +118,7 @@ impl Squashy {
     fn get_current_state_end_pos(&self) -> Vec2 {
         if let Some(state) = self.state.clone() {
             match state {
-                SquashStretchState::Restore => self.base_scale,
+                SquashStretchState::Restore => Vec2::ONE,
                 SquashStretchState::Squash => self.squash_scale,
                 SquashStretchState::Stretch => self.stretch_scale,
             }
@@ -406,7 +406,7 @@ fn squash_animation(
         if squish.state.is_some() {
             let t = squish.state_time / squish.get_current_state_max_time();
             let scale = squish.from_pos.lerp(squish.get_current_state_end_pos(), t);
-            sprite.custom_size = Some(Vec2::new(48. * scale.x, 32. * scale.y));
+            sprite.custom_size = Some(Vec2::new(scale.x * squish.base_scale.x, scale.y * squish.base_scale.y));
             
             println!("scale {}", scale);
             

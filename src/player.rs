@@ -161,7 +161,7 @@ impl LdtkEntity for PlayerBundle {
            },
            pickup_collector: crate::pickup::PickupCollector,
            squashy: Squashy {
-               base_scale: Vec2::ONE,
+               base_scale: Vec2::new(48., 32.),
                restore_time: 0.15,
                squash_scale: Vec2::new(1.2, 0.8),
                squash_time: 0.05,
