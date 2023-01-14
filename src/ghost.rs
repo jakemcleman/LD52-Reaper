@@ -45,6 +45,7 @@ pub struct GhostBundle {
     pub actor_status: ActorStatus,
     pub death: TouchDeath,
     pub scythable: actor::Scythable,
+    pub squashy: Squashy,
 }
 
 
@@ -139,6 +140,17 @@ impl LdtkEntity for GhostBundle {
                 scythed: false,
                 hit_from: None,
             },
+            squashy: Squashy {
+               base_scale: Vec2::new(24., 24.),
+               restore_time: 0.15,
+               squash_scale: Vec2::new(1.2, 0.8),
+               squash_time: 0.05,
+               stretch_scale: Vec2::new(0.8, 1.1),
+               stretch_time: 0.05,
+               state: None,
+               state_time: 0.,
+               from_pos: Vec2::ONE,
+           },
         }
     }
 }

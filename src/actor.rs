@@ -124,7 +124,7 @@ impl Squashy {
             }
         }
         else {
-            self.base_scale
+            Vec2::ONE
         }
     }
 }
