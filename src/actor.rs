@@ -406,9 +406,11 @@ fn squash_animation(
         if squish.state.is_some() {
             let t = squish.state_time / squish.get_current_state_max_time();
             let scale = squish.from_pos.lerp(squish.get_current_state_end_pos(), t);
-            sprite.custom_size = Some(32. * scale);
+            sprite.custom_size = Some(Vec2::new(48. * scale.x, 32. * scale.y));
             
-            let y_offset = scale.y - 1.;
+            println!("scale {}", scale);
+            
+            let y_offset = (scale.y - 1.) / 2.;
             sprite.anchor = Anchor::Custom(Vec2::new(0., -y_offset));
         }
         else {
