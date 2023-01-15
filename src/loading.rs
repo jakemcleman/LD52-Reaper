@@ -70,4 +70,6 @@ pub struct SpriteAssets {
     pub texture_door_closed: Handle<Image>,
     #[asset(path = "sprites/door_open.png")]
     pub texture_door_open: Handle<Image>,
+    #[asset(path = "sprites/main_title.png")]
+    pub texture_title: Handle<Image>,
 }

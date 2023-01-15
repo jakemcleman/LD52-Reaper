@@ -1,7 +1,8 @@
-use crate::loading::FontAssets;
+use crate::loading::*;
 use crate::GameState;
 use bevy::prelude::*;
 use bevy::app::AppExit;
+use bevy::ui::widget::ImageMode;
 use bevy_ui_navigation::prelude::*;
 
 pub struct MenuPlugin;
@@ -23,14 +24,17 @@ impl Plugin for MenuPlugin {
 #[derive(Resource)]
 struct ButtonColors {
     normal: Color,
-    hovered: Color,
+    highlight: Color,
+    active: Color,
+    
 }
 
 impl Default for ButtonColors {
     fn default() -> Self {
         ButtonColors {
-            normal: Color::rgb(0.15, 0.15, 0.15),
-            hovered: Color::rgb(0.25, 0.25, 0.25),
+            normal: Color::hex("8a8a8a").unwrap(),
+            highlight: Color::hex("58ADBF").unwrap(),
+            active: Color::hex("d9b866").unwrap(),
         }
     }
 }
@@ -38,21 +42,52 @@ impl Default for ButtonColors {
 #[derive(Component)]
 enum MenuButton {
     Play,
+    LevelSelect,
     Options,
     Quit,
 }
+
+#[derive(Component)]
+struct MenuElement;
 
 fn setup_menu(
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     button_colors: Res<ButtonColors>,
+    sprite_assets: Res<SpriteAssets>,
 ) {
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play, Vec2::new(25., 10.)); 
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 10.)); 
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(75., 10.)); 
+   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play, Vec2::new(10., 80.), Vec2::new(19., 8.)); 
+   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.)); 
+   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
+   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.)); 
+   
+   commands.spawn(ImageBundle {
+       image: UiImage(sprite_assets.texture_title.clone()),
+       image_mode: ImageMode::KeepAspect,
+       style: Style {
+            size: Size::new(Val::Percent(40.), Val::Auto),
+            position: UiRect {
+                left: Val::Percent(30.),
+                top: Val::Percent(5.),
+                ..Default::default()
+            },
+            position_type: PositionType::Absolute,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..Default::default()
+       },
+       ..Default::default()
+   }).insert(MenuElement)
+   ;
 }
 
-fn spawn_menu_button(commands: &mut Commands, button_colors: &ButtonColors, font: &Handle<Font>, button_type: MenuButton, position: Vec2) {
+fn spawn_menu_button(
+    commands: &mut Commands, 
+    button_colors: &ButtonColors, 
+    font: &Handle<Font>, 
+    button_type: MenuButton, 
+    position: Vec2, size: Vec2,
+    ) {
     let position = UiRect {
         left: Val::Percent(position.x),
         top: Val::Percent(position.y),
@@ -61,6 +96,7 @@ fn spawn_menu_button(commands: &mut Commands, button_colors: &ButtonColors, font
     
     let label_string = match button_type {
         MenuButton::Play => "Play",
+        MenuButton::LevelSelect => "Level\nSelect",
         MenuButton::Options => "Options",
         MenuButton::Quit => "Quit",
     }.to_string();
@@ -68,12 +104,13 @@ fn spawn_menu_button(commands: &mut Commands, button_colors: &ButtonColors, font
     commands
         .spawn(ButtonBundle {
             style: Style {
-                size: Size::new(Val::Px(280.0), Val::Px(80.0)),
+                size: Size::new(Val::Percent(size.x), Val::Percent(size.y)),
                 position,
                 position_type: PositionType::Absolute,
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+                align_self: AlignSelf::Center,
                 ..Default::default()
             },
             background_color: button_colors.normal.into(),
@@ -81,6 +118,7 @@ fn spawn_menu_button(commands: &mut Commands, button_colors: &ButtonColors, font
         })
         .insert(button_type)
         .insert(Focusable::default())
+        .insert(MenuElement)
         .with_children(|parent| {
             parent.spawn(TextBundle {
                 text: Text {
@@ -88,7 +126,7 @@ fn spawn_menu_button(commands: &mut Commands, button_colors: &ButtonColors, font
                         value: label_string,
                         style: TextStyle {
                             font: font.clone(),
-                            font_size: 32.0,
+                            font_size: 24.0,
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },
                     }],
@@ -101,14 +139,13 @@ fn spawn_menu_button(commands: &mut Commands, button_colors: &ButtonColors, font
 
 fn button_system(
     mut interaction_query: Query<(&Focusable, &mut BackgroundColor), Changed<Focusable>>,
+    button_colors: Res<ButtonColors>,
 ) {
     for (focus, mut material) in interaction_query.iter_mut() {
         let color = match focus.state() {
-            FocusState::Focused => Color::ORANGE_RED,
-            FocusState::Active => Color::GOLD,
-            FocusState::Prioritized => Color::GRAY,
-            FocusState::Inert => Color::DARK_GRAY,
-            FocusState::Blocked => Color::ANTIQUE_WHITE,
+            FocusState::Focused => button_colors.highlight,
+            FocusState::Active => button_colors.active,
+            _ => button_colors.normal,
         };
         *material = color.into();
     }
@@ -133,6 +170,7 @@ fn button_nav_events(
                     if let Ok(button) = buttons.get(from.first().clone()) {
                         match button {
                             MenuButton::Play => state.set(GameState::Playing).unwrap(),
+                            MenuButton::LevelSelect => (),
                             MenuButton::Options => (),
                             MenuButton::Quit => exit.send(AppExit),
                         };
@@ -143,38 +181,8 @@ fn button_nav_events(
         }
     }
 }
-    
 
-fn click_play_button(
-    button_colors: Res<ButtonColors>,
-    mut state: ResMut<State<GameState>>,
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &MenuButton),
-        (Changed<Interaction>, With<Button>),
-    >,
-    mut exit: EventWriter<AppExit>,
-) {
-    for (interaction, mut color, button) in &mut interaction_query {
-        match *interaction {
-            Interaction::Clicked => {
-                match button {
-                    MenuButton::Play => state.set(GameState::Playing).unwrap(),
-                    MenuButton::Options => (),
-                    MenuButton::Quit => exit.send(AppExit),
-                };
-                
-            }
-            Interaction::Hovered => {
-                *color = button_colors.hovered.into();
-            }
-            Interaction::None => {
-                *color = button_colors.normal.into();
-            }
-        }
-    }
-}
-
-fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, With<Button>>) {
+fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, With<MenuElement>>) {
     for button in buttons.iter() {
         commands.entity(button).despawn_recursive();
     }
