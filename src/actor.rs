@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::Anchor};
 use bevy_rapier2d::prelude::*;
-use crate::{GameState, sprite_anim::SpriteAnimator, soul::CollectedSoulEvent, pickup::{PickupCollector, PickupEvent}};
+use crate::{GameState, sprite_anim::SpriteAnimator, soul::CollectedSoulEvent, pickup::{PickupCollector, PickupEvent, check_for_pickups}};
 
 pub struct ActorPlugin;
 
@@ -144,6 +144,7 @@ impl Plugin for ActorPlugin {
                 .after(actor_status)
                 .after(actor_movement)
                 .after(actor_attack)
+                .after(check_for_pickups)
             )
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(actor_event_clear))
             .add_system_set(SystemSet::on_update(GameState::Playing)

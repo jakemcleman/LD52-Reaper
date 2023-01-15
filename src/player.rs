@@ -110,8 +110,6 @@ impl LdtkEntity for PlayerBundle {
             }
         }
         
-        println!("jump {}", actor.jump_speed);
-        
         PlayerBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
@@ -208,7 +206,6 @@ fn player_win(
         rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
             if let Ok(door) = doors.get(entity) {
                 if door.required_souls == 0 {
-                    println!("win player");
                     next_level_writer.send(ChangeLevelEvent::Index(door.next_level));
                     status.event = Some(ActorEvent::Win);
                     return false; // no need to keep looking
@@ -232,7 +229,6 @@ fn player_death(
         
         rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
             if let Ok(_touched_ent) = enemies_query.get(entity) {
-                println!("ded player");
                 reload_writer.send(ReloadWorldEvent);
                 status.event = Some(ActorEvent::Died);
                 return false; // no need to keep looking

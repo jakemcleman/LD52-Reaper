@@ -4,6 +4,7 @@ use crate::GameState;
 use bevy::prelude::*;
 use bevy::app::AppExit;
 use bevy::ui::widget::ImageMode;
+use bevy_ecs_ldtk::LevelSelection;
 use bevy_ui_navigation::prelude::*;
 
 pub struct MenuPlugin;
@@ -50,7 +51,7 @@ impl Default for ButtonColors {
 
 #[derive(Component)]
 enum MenuButton {
-    Play,
+    Play(usize),
     LevelSelect,
     Options,
     Menu,
@@ -67,7 +68,7 @@ fn setup_menu(
     button_colors: Res<ButtonColors>,
     sprite_assets: Res<SpriteAssets>,
 ) {
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play, Vec2::new(10., 80.), Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play(0), Vec2::new(10., 80.), Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.)); 
@@ -162,7 +163,14 @@ fn spawn_menu_button(
     };
     
     let label_string = match button_type {
-        MenuButton::Play => "Play",
+        MenuButton::Play(index) => { 
+            if index == 0 {
+                "New Game"
+            }
+            else {
+                "Resume"
+            }
+        },
         MenuButton::LevelSelect => "Level\nSelect",
         MenuButton::Options => "Options",
         MenuButton::Menu => "Main Menu",
@@ -231,6 +239,7 @@ fn button_nav_events(
     buttons: Query<&MenuButton>,
     mut state: ResMut<State<GameState>>,
     mut exit: EventWriter<AppExit>,
+    mut level_selection: ResMut<LevelSelection>,
     ) {
     for event in events.iter() {
         match event {
@@ -238,8 +247,11 @@ fn button_nav_events(
                 if *request == NavRequest::Action {
                     if let Ok(button) = buttons.get(from.first().clone()) {
                         match button {
-                            MenuButton::Play => state.set(GameState::Playing).unwrap(),
-                            MenuButton::LevelSelect => (),
+                            MenuButton::Play(level_index) => { 
+                                state.set(GameState::Playing).unwrap();
+                                *level_selection = LevelSelection::Index(*level_index);
+                            },
+                            MenuButton::LevelSelect => () ,
                             MenuButton::Options => (),
                             MenuButton::Menu => state.replace(GameState::Menu).unwrap(),
                             MenuButton::Resume => state.pop().unwrap(),
