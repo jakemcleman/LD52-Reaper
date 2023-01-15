@@ -170,7 +170,7 @@ impl LdtkEntity for PlayerBundle {
                state: None,
                state_time: 0.,
                from_pos: Vec2::ONE,
-           }
+           },
         }
     }
 }

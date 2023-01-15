@@ -181,7 +181,6 @@ pub fn actor_status(
 ) {
     for (entity, transform, mut actor_status, controller_output) in &mut actor_query {
         if !actor_status.grounded && controller_output.grounded {
-            println!("firing landed event!");
             actor_status.event = Some(ActorEvent::Landed);
         }
         
@@ -407,8 +406,6 @@ fn squash_animation(
             let t = squish.state_time / squish.get_current_state_max_time();
             let scale = squish.from_pos.lerp(squish.get_current_state_end_pos(), t);
             sprite.custom_size = Some(Vec2::new(scale.x * squish.base_scale.x, scale.y * squish.base_scale.y));
-            
-            println!("scale {}", scale);
             
             let y_offset = (scale.y - 1.) / 2.;
             sprite.anchor = Anchor::Custom(Vec2::new(0., -y_offset));

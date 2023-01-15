@@ -193,6 +193,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy-ui-navigation"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e58ca6ec442f18a5eaff1280f6999496748265853c3e32b80c418adc9e7f74b7"
+dependencies = [
+ "bevy",
+ "non-empty-vec",
+]
+
+[[package]]
 name = "bevy_animation"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1954,6 +1964,7 @@ name = "ld52_reaper"
 version = "0.4.3"
 dependencies = [
  "bevy",
+ "bevy-ui-navigation",
  "bevy_asset_loader",
  "bevy_ecs_ldtk",
  "bevy_rapier2d",
@@ -2291,6 +2302,12 @@ dependencies = [
  "memchr",
  "minimal-lexical",
 ]
+
+[[package]]
+name = "non-empty-vec"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ceeba69aa8d4c53cdceeac8f17eb2656bb88b468bbe6c0889d34edfdea26ec8b"
 
 [[package]]
 name = "notify"

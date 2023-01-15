@@ -11,10 +11,11 @@ mod ghost;
 mod soul;
 mod pickup;
 mod door;
+mod menu;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;
-// use crate::mainmenu::MainMenuPlugin;
+use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
 use crate::ghost::GhostPlugin;
 use crate::world::WorldPlugin;
@@ -42,7 +43,7 @@ enum GameState {
     // During this State the actual game logic is executed
     Playing,
     // Here the menu is drawn and waiting for player interaction
-    // Menu,
+    Menu,
 }
 
 pub struct GamePlugin;
@@ -53,7 +54,7 @@ impl Plugin for GamePlugin {
             .add_plugin(WorldPlugin)
             .add_plugin(LoadingPlugin)
             .add_plugin(UiEventPlugin)
-            // .add_plugin(MainMenuPlugin)
+            .add_plugin(MenuPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(PlayerPlugin)
             .add_plugin(PickupPlugin)

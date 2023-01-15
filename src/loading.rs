@@ -14,7 +14,7 @@ impl Plugin for LoadingPlugin {
                 .with_collection::<FontAssets>()
                 .with_collection::<AudioAssets>()
                 .with_collection::<SpriteAssets>()
-                .continue_to_state(GameState::Playing),
+                .continue_to_state(GameState::Menu),
         );
     }
 }
@@ -26,6 +26,8 @@ impl Plugin for LoadingPlugin {
 pub struct FontAssets {
     #[asset(path = "fonts/PressStart2P.ttf")]
     pub press_start: Handle<Font>,
+    #[asset(path = "fonts/FiraSans-Bold.ttf")]
+    pub fira_sans: Handle<Font>,
 }
 
 #[derive(AssetCollection, Resource)]

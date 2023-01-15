@@ -142,8 +142,8 @@ impl LdtkEntity for GhostBundle {
             },
             squashy: Squashy {
                base_scale: Vec2::new(24., 24.),
-               restore_time: 0.15,
-               squash_scale: Vec2::new(1.2, 0.8),
+               restore_time: 0.25,
+               squash_scale: Vec2::new(1.2, 0.7),
                squash_time: 0.05,
                stretch_scale: Vec2::new(0.8, 1.1),
                stretch_time: 0.05,
