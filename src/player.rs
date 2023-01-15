@@ -24,6 +24,7 @@ impl Plugin for PlayerPlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing)
                 .with_system(player_inputs)
                 .after(actor_status)
+                .after(crate::actions::set_movement_actions)
                 .before(actor_movement)
             )
             .add_system_set(SystemSet::on_update(GameState::Playing)

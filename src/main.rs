@@ -21,6 +21,8 @@ fn main() {
                 height: 800.,
                 title: "LD52 - Reaper".to_string(), // ToDo
                 canvas: Some("#bevy".to_owned()),
+                // TODO: once the game can be quit without alt-f4, change release to use borderless fullscreen
+                mode: if cfg!(debug_assertions) { WindowMode::Windowed } else { WindowMode::Windowed }, 
                 ..Default::default()
             },
             ..default()

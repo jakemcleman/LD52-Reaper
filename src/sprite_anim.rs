@@ -1,11 +1,14 @@
 
 use bevy::prelude::*;
+use crate::GameState;
 
 pub struct SpriteAnimationPlugin;
 
 impl Plugin for SpriteAnimationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(animate_sprite);
+        app
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(animate_sprite))
+        ;
     }
 }
 

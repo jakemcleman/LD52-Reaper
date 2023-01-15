@@ -72,4 +72,6 @@ pub struct SpriteAssets {
     pub texture_door_open: Handle<Image>,
     #[asset(path = "sprites/main_title.png")]
     pub texture_title: Handle<Image>,
+    #[asset(path = "sprites/pause_menu.png")]
+    pub texture_pause_background: Handle<Image>,
 }

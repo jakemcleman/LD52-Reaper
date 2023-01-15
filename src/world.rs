@@ -34,6 +34,7 @@ impl Plugin for WorldPlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(cut_wheat))
+            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_world))
             .add_system(spawn_wall_collision)
             .register_ldtk_entity::<crate::player::PlayerBundle>("Player")
             .register_ldtk_entity::<crate::ghost::GhostBundle>("Ghost")
@@ -50,6 +51,15 @@ impl Plugin for WorldPlugin {
                 .add_system_set(SystemSet::on_update(GameState::Playing).with_system(test_switch_level))
             ;
         }
+    }
+}
+
+fn cleanup_world(
+    mut commands: Commands,
+    query: Query<Entity, Without<OrthographicProjection>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
     }
 }
 

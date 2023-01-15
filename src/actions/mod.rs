@@ -13,9 +13,10 @@ pub struct ActionsPlugin;
 // Actions can then be used as a resource in other systems to act on the player input.
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Actions>().add_system_set(
-            SystemSet::on_update(GameState::Playing).with_system(set_movement_actions),
-        );
+        app.init_resource::<Actions>()
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(set_movement_actions))
+            .add_system(set_pause_actions)
+        ;
     }
 }
 
@@ -24,6 +25,24 @@ pub struct Actions {
     pub player_movement: Vec2,
     pub jump: bool,
     pub attack: bool,
+    pub pause: bool,
+}
+
+pub fn set_pause_actions(
+    mut actions: ResMut<Actions>,
+    keyboard_input: Res<Input<KeyCode>>, 
+    gamepad_input: Res<Gamepads>,
+    gamepad_buttons: Res<Input<GamepadButton>>,
+) {
+    actions.pause = keyboard_input.just_pressed(KeyCode::Escape);
+    
+    for gamepad in gamepad_input.iter() { 
+        if actions.pause {
+            break;
+        }
+        
+        actions.pause = gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::Start));
+    }
 }
 
 pub fn set_movement_actions(

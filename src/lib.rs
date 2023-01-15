@@ -44,6 +44,8 @@ enum GameState {
     Playing,
     // Here the menu is drawn and waiting for player interaction
     Menu,
+    // To be used over the playing state
+    Paused,
 }
 
 pub struct GamePlugin;

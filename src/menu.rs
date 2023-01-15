@@ -1,3 +1,4 @@
+use crate::actions::Actions;
 use crate::loading::*;
 use crate::GameState;
 use bevy::prelude::*;
@@ -17,7 +18,15 @@ impl Plugin for MenuPlugin {
             .add_system(print_nav_events.after(NavRequestSystem))
             .add_system_set(SystemSet::on_enter(GameState::Menu).with_system(setup_menu))
             .add_system_set(SystemSet::on_update(GameState::Menu).with_system(button_nav_events))
-            .add_system_set(SystemSet::on_exit(GameState::Menu).with_system(cleanup_menu));
+            .add_system_set(SystemSet::on_exit(GameState::Menu).with_system(cleanup_menu))
+            .add_system_set(SystemSet::on_enter(GameState::Paused).with_system(setup_pause_menu))
+            .add_system_set(SystemSet::on_update(GameState::Paused)
+                .with_system(button_nav_events)
+                .with_system(esc_to_resume)
+            )
+            .add_system_set(SystemSet::on_exit(GameState::Paused).with_system(cleanup_menu))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(esc_to_menu))
+        ;
     }
 }
 
@@ -44,6 +53,8 @@ enum MenuButton {
     Play,
     LevelSelect,
     Options,
+    Menu,
+    Resume,
     Quit,
 }
 
@@ -56,15 +67,15 @@ fn setup_menu(
     button_colors: Res<ButtonColors>,
     sprite_assets: Res<SpriteAssets>,
 ) {
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play, Vec2::new(10., 80.), Vec2::new(19., 8.)); 
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.)); 
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
-   spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play, Vec2::new(10., 80.), Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.)); 
    
-   commands.spawn(ImageBundle {
-       image: UiImage(sprite_assets.texture_title.clone()),
-       image_mode: ImageMode::KeepAspect,
-       style: Style {
+    commands.spawn(ImageBundle {
+        image: UiImage(sprite_assets.texture_title.clone()),
+        image_mode: ImageMode::KeepAspect,
+        style: Style {
             size: Size::new(Val::Percent(40.), Val::Auto),
             position: UiRect {
                 left: Val::Percent(30.),
@@ -75,10 +86,66 @@ fn setup_menu(
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             ..Default::default()
-       },
-       ..Default::default()
+        },
+        ..Default::default()
    }).insert(MenuElement)
    ;
+}
+
+fn esc_to_menu(
+    mut actions: ResMut<Actions>,
+    mut app_state: ResMut<State<GameState>>,
+) {
+    if actions.pause {
+        actions.pause = false;
+        app_state.push(GameState::Paused).unwrap();
+    }
+}
+
+fn esc_to_resume(
+    mut actions: ResMut<Actions>,
+    mut app_state: ResMut<State<GameState>>,
+) {
+    if actions.pause {
+        actions.pause = false;
+        app_state.pop().unwrap();
+    }
+}
+
+fn setup_pause_menu(
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+    sprite_assets: Res<SpriteAssets>,
+) {
+    commands.spawn(ImageBundle {
+        image: UiImage(sprite_assets.texture_pause_background.clone()),
+        image_mode: ImageMode::KeepAspect,
+        z_index: ZIndex::Global(-1),
+        style: Style {
+            size: Size::new(Val::Auto, Val::Percent(100.)),
+            position: UiRect {
+                left: Val::Percent(0.),
+                top: Val::Percent(0.),
+                ..Default::default()
+            },
+            position_type: PositionType::Absolute,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        ..Default::default()
+   }).insert(MenuElement)
+   ;
+    
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
+        MenuButton::Resume, Vec2::new(10., 30.), Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
+        MenuButton::LevelSelect, Vec2::new(10., 40.),Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
+        MenuButton::Menu, Vec2::new(10., 50.),Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
+        MenuButton::Quit, Vec2::new(10., 60.), Vec2::new(19., 8.)); 
 }
 
 fn spawn_menu_button(
@@ -98,6 +165,8 @@ fn spawn_menu_button(
         MenuButton::Play => "Play",
         MenuButton::LevelSelect => "Level\nSelect",
         MenuButton::Options => "Options",
+        MenuButton::Menu => "Main Menu",
+        MenuButton::Resume => "Resume",
         MenuButton::Quit => "Quit",
     }.to_string();
     
@@ -172,6 +241,8 @@ fn button_nav_events(
                             MenuButton::Play => state.set(GameState::Playing).unwrap(),
                             MenuButton::LevelSelect => (),
                             MenuButton::Options => (),
+                            MenuButton::Menu => state.replace(GameState::Menu).unwrap(),
+                            MenuButton::Resume => state.pop().unwrap(),
                             MenuButton::Quit => exit.send(AppExit),
                         };
                     }
