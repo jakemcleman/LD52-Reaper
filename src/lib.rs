@@ -12,6 +12,7 @@ mod soul;
 mod pickup;
 mod door;
 mod menu;
+mod settings;
 
 use crate::actions::ActionsPlugin;
 use crate::loading::LoadingPlugin;
@@ -21,6 +22,7 @@ use crate::ghost::GhostPlugin;
 use crate::world::WorldPlugin;
 use crate::camera::CameraPlugin;
 use crate::pickup::PickupPlugin;
+use crate::settings::SettingsPlugin;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -46,7 +48,7 @@ enum GameState {
     Menu,
     // To be used over the playing state
     Paused,
-    //
+    // Shows level selection menu
     LevelSelect,
 }
 
@@ -55,6 +57,7 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(GameState::Loading)
+            .add_plugin(SettingsPlugin)
             .add_plugin(WorldPlugin)
             .add_plugin(LoadingPlugin)
             .add_plugin(UiEventPlugin)

@@ -1971,6 +1971,8 @@ dependencies = [
  "embed-resource",
  "image",
  "rand",
+ "ron",
+ "serde",
  "winit",
 ]
 

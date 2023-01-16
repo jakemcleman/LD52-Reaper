@@ -38,9 +38,9 @@ impl Plugin for SoulPlugin {
         app
             .add_event::<CollectedSoulEvent>()
             .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(soul_movement))
-            .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(soul_pickups).after(crate::pickup::check_for_pickups))
+                .with_system(soul_movement)
+                .with_system(soul_pickups)
+                .after(crate::pickup::check_for_pickups))
         ;
     }
 }

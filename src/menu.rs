@@ -163,7 +163,7 @@ fn setup_level_select(
     font_assets: Res<FontAssets>,
     button_colors: Res<ButtonColors>,
 ) {
-    let level_sequence = [0, 1, 2, 3, 5, 4, 6, 7, 8, 9, 12, 11, 10, 13, 14];
+    let level_sequence = [0, 1, 2, 3, 5, 4, 6, 7, 8, 9, 16, 12, 11, 10, 13, 14];
     let mut sequence_index = 0;
     let size = Vec2::new(16., 8.);
     let spacing = size + Vec2::new(2., 2.);
@@ -335,7 +335,7 @@ fn button_nav_events(
                     if let Ok(button) = buttons.get(from.first().clone()) {
                         match button {
                             MenuButton::Play(level_index) => { 
-                                state.set(GameState::Playing).unwrap();
+                                state.replace(GameState::Playing).unwrap();
                                 *level_selection = LevelSelection::Index(*level_index);
                             },
                             MenuButton::LevelSelect => state.set(GameState::LevelSelect).unwrap(),
