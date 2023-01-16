@@ -16,6 +16,7 @@ impl Plugin for ActionsPlugin {
         app.init_resource::<Actions>()
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(set_movement_actions))
             .add_system(set_pause_actions)
+            .add_system(set_back_actions)
         ;
     }
 }
@@ -26,6 +27,7 @@ pub struct Actions {
     pub jump: bool,
     pub attack: bool,
     pub pause: bool,
+    pub back: bool,
 }
 
 pub fn set_pause_actions(
@@ -42,6 +44,23 @@ pub fn set_pause_actions(
         }
         
         actions.pause = gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::Start));
+    }
+}
+
+pub fn set_back_actions(
+    mut actions: ResMut<Actions>,
+    keyboard_input: Res<Input<KeyCode>>, 
+    gamepad_input: Res<Gamepads>,
+    gamepad_buttons: Res<Input<GamepadButton>>,
+) {
+    actions.back = keyboard_input.just_pressed(KeyCode::Escape);
+    
+    for gamepad in gamepad_input.iter() { 
+        if actions.back {
+            break;
+        }
+        
+        actions.back = gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East));
     }
 }
 

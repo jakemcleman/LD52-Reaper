@@ -16,15 +16,14 @@ impl Plugin for MenuPlugin {
         app.init_resource::<ButtonColors>()
             .add_plugins(DefaultNavigationPlugins)
             .add_system(button_system.after(NavRequestSystem))
-            .add_system(print_nav_events.after(NavRequestSystem))
+            .add_system(button_nav_events.after(NavRequestSystem))
             .add_system_set(SystemSet::on_enter(GameState::Menu).with_system(setup_menu))
-            .add_system_set(SystemSet::on_update(GameState::Menu).with_system(button_nav_events))
             .add_system_set(SystemSet::on_exit(GameState::Menu).with_system(cleanup_menu))
+            .add_system_set(SystemSet::on_enter(GameState::LevelSelect).with_system(setup_level_select))
+            .add_system_set(SystemSet::on_update(GameState::LevelSelect).with_system(back_to_menu))
+            .add_system_set(SystemSet::on_exit(GameState::LevelSelect).with_system(cleanup_menu))
             .add_system_set(SystemSet::on_enter(GameState::Paused).with_system(setup_pause_menu))
-            .add_system_set(SystemSet::on_update(GameState::Paused)
-                .with_system(button_nav_events)
-                .with_system(esc_to_resume)
-            )
+            .add_system_set(SystemSet::on_update(GameState::Paused).with_system(esc_to_resume))
             .add_system_set(SystemSet::on_exit(GameState::Paused).with_system(cleanup_menu))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(esc_to_menu))
         ;
@@ -105,11 +104,21 @@ fn esc_to_menu(
 
 fn esc_to_resume(
     mut actions: ResMut<Actions>,
-    mut app_state: ResMut<State<GameState>>,
+    mut state: ResMut<State<GameState>>,
 ) {
     if actions.pause {
         actions.pause = false;
-        app_state.pop().unwrap();
+        state.pop().unwrap();
+    }
+}
+
+fn back_to_menu(
+    mut actions: ResMut<Actions>,
+    mut state: ResMut<State<GameState>>,
+) {
+    if actions.back {
+        actions.back = false;
+        state.replace(GameState::Menu).unwrap();
     }
 }
 
@@ -147,6 +156,84 @@ fn setup_pause_menu(
         MenuButton::Menu, Vec2::new(10., 50.),Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
         MenuButton::Quit, Vec2::new(10., 60.), Vec2::new(19., 8.)); 
+}
+
+fn setup_level_select(
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+) {
+    let level_sequence = [0, 1, 2, 3, 5, 4, 6, 7, 8, 9, 12, 11, 10, 13, 14];
+    let mut sequence_index = 0;
+    let size = Vec2::new(16., 8.);
+    let spacing = size + Vec2::new(2., 2.);
+    let base_pos = Vec2::new(15., 25.);
+    
+    let columns = 4;
+    
+    for level_index in level_sequence {
+        let col = sequence_index % columns;
+        let row = sequence_index / columns;
+        let pos = base_pos + Vec2::new(spacing.x * (col as f32), spacing.y * (row as f32));
+        
+        spawn_level_select_button(&mut commands, &button_colors, &font_assets.press_start, level_index, sequence_index + 1, pos, size);
+        
+        sequence_index += 1;
+    }
+    
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Menu, Vec2::new(10., 80.), Vec2::new(19., 8.));
+}
+
+fn spawn_level_select_button(
+    commands: &mut Commands, 
+    button_colors: &ButtonColors, 
+    font: &Handle<Font>, 
+    true_level_index: usize, 
+    level_number: i32, 
+    position: Vec2, size: Vec2,
+) {
+    let position = UiRect {
+        left: Val::Percent(position.x),
+        top: Val::Percent(position.y),
+        ..Default::default()
+    };
+    
+    let label_string = "Level ".to_string() + level_number.to_string().as_str();
+    
+    commands
+        .spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Percent(size.x), Val::Percent(size.y)),
+                position,
+                position_type: PositionType::Absolute,
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                align_self: AlignSelf::Center,
+                ..Default::default()
+            },
+            background_color: button_colors.normal.into(),
+            ..Default::default()
+        })
+        .insert(MenuButton::Play(true_level_index))
+        .insert(Focusable::default())
+        .insert(MenuElement)
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: label_string,
+                        style: TextStyle {
+                            font: font.clone(),
+                            font_size: 24.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                        },
+                    }],
+                    alignment: Default::default(),
+                },
+                ..Default::default()
+            });
+        });
 }
 
 fn spawn_menu_button(
@@ -228,11 +315,11 @@ fn button_system(
     }
 }
 
-fn print_nav_events(mut events: EventReader<NavEvent>) {
-    for event in events.iter() {
-        println!("{:?}", event);
-    }
-}
+// fn print_nav_events(mut events: EventReader<NavEvent>) {
+//     for event in events.iter() {
+//         println!("{:?}", event);
+//     }
+// }
 
 fn button_nav_events(
     mut events: EventReader<NavEvent>,
@@ -251,7 +338,7 @@ fn button_nav_events(
                                 state.set(GameState::Playing).unwrap();
                                 *level_selection = LevelSelection::Index(*level_index);
                             },
-                            MenuButton::LevelSelect => () ,
+                            MenuButton::LevelSelect => state.set(GameState::LevelSelect).unwrap(),
                             MenuButton::Options => (),
                             MenuButton::Menu => state.replace(GameState::Menu).unwrap(),
                             MenuButton::Resume => state.pop().unwrap(),

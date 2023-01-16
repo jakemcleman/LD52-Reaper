@@ -46,6 +46,8 @@ enum GameState {
     Menu,
     // To be used over the playing state
     Paused,
+    //
+    LevelSelect,
 }
 
 pub struct GamePlugin;
