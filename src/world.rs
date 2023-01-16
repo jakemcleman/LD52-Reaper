@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::collections::{HashSet, HashMap};
+use bevy_pkv::PkvStore;
 
 use crate::{GameState, actor::Scythable, door};
 
@@ -13,8 +14,10 @@ pub struct Labeled {
 }
 
 pub struct ReloadWorldEvent;
-pub enum ChangeLevelEvent {
-    Index(usize),
+
+pub struct ChangeLevelEvent {
+    pub index: usize,
+    pub completed: bool,
 }
 
 impl Plugin for WorldPlugin {
@@ -33,6 +36,7 @@ impl Plugin for WorldPlugin {
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_world))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(switch_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(reload_level))
+            .add_system_set(SystemSet::on_update(GameState::Paused).with_system(reload_level))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(cut_wheat))
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_world))
             .add_system(spawn_wall_collision)
@@ -54,6 +58,23 @@ impl Plugin for WorldPlugin {
     }
 }
 
+pub struct SaveData;
+
+impl SaveData {
+    fn get_level_key(level: usize) -> String {
+        String::from("Level") + level.to_string().as_str() + "Completed"
+    }
+
+    pub fn has_completed_level(data_store: &PkvStore, level: usize) -> bool {
+        data_store.get::<bool>(SaveData::get_level_key(level).as_str()).unwrap_or(false)
+    }
+
+    pub fn mark_level_complete(data_store: &mut PkvStore, level: usize) {
+        println!("completed level {}", level);
+        data_store.set::<bool>(SaveData::get_level_key(level).as_str(), &true).unwrap();
+    }
+}
+
 fn cleanup_world(
     mut commands: Commands,
     query: Query<Entity, Without<OrthographicProjection>>,
@@ -70,7 +91,8 @@ fn reload_level(
     reload_event_listener: EventReader<ReloadWorldEvent>,
     souls_query: Query<(Entity, &crate::soul::Soul)>,
 ) {
-    if reload_event_listener.len() > 0 ||  input.just_pressed(KeyCode::R) {
+    if !reload_event_listener.is_empty() ||  input.just_pressed(KeyCode::R) {
+        println!("reloading level");
         for level_entity in &level_query {
             commands.entity(level_entity).insert(Respawn);
         }
@@ -86,11 +108,16 @@ fn reload_level(
 fn switch_level(
     mut level_selection: ResMut<LevelSelection>,
     mut change_event_listener: EventReader<ChangeLevelEvent>,
+    mut data_store: ResMut<PkvStore>,
 ) {
     for ev in change_event_listener.iter() {
-        match ev {
-            ChangeLevelEvent::Index(i) => *level_selection = LevelSelection::Index(*i),
+        if ev.completed {
+            if let LevelSelection::Index(index) = *level_selection {
+                SaveData::mark_level_complete(&mut data_store, index);
+            }
         }
+        
+        *level_selection = LevelSelection::Index(ev.index);
     }
 }
 

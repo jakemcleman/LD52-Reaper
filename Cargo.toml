@@ -30,6 +30,7 @@ bevy_rapier2d = { version = "0.19", features = ["debug-render"] }
 bevy-ui-navigation = "0.22.0"
 ron = "0.8.0"
 serde = { version = "1", features = ["derive"] }
+bevy_pkv = "0.6.0"
 
 # keep the following in sync with Bevy's dependencies
 winit = { version = "0.27", default-features = false }

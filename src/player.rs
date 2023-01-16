@@ -2,7 +2,7 @@ use crate::actions::Actions;
 use crate::GameState;
 use crate::sprite_anim::SpriteAnimator;
 use crate::actor::*;
-use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Labeled};
+use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Labeled, SaveData};
 use crate::door::Door;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
@@ -195,7 +195,7 @@ fn player_inputs(
 fn player_win(
     mut next_level_writer: EventWriter<ChangeLevelEvent>,
     rapier_context: Res<RapierContext>,
-    doors: Query<&Door>,
+    mut doors: Query<&mut Door>,
     mut player_query: Query<(&Transform, &mut ActorStatus), With<Player>>,
 ) {
     for (transform, mut status) in &mut player_query { 
@@ -204,10 +204,17 @@ fn player_win(
         let shape_pos = transform.translation.truncate();
         
         rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
-            if let Ok(door) = doors.get(entity) {
+            if let Ok(mut door) = doors.get_mut(entity) {
                 if door.required_souls == 0 {
-                    next_level_writer.send(ChangeLevelEvent::Index(door.next_level));
+                    println!("sending event");
+                    next_level_writer.send(ChangeLevelEvent {
+                        index: door.next_level,
+                        completed: true,
+                    });
                     status.event = Some(ActorEvent::Win);
+
+                    door.required_souls = usize::MAX;
+
                     return false; // no need to keep looking
                 }
             }

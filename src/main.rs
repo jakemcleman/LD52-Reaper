@@ -8,21 +8,19 @@ use bevy::DefaultPlugins;
 use ld52_reaper::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
-// use bevy_pkv::PkvStore;
+use bevy_pkv::PkvStore;
 
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
-        .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
-        // .insert_resource(PkvStore::new("VaguelyDamp", "ld52_reaper_game")) // ToDo
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .insert_resource(PkvStore::new("VaguelyDamp", "reaper_game"))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
                 width: 1280.,
                 height: 800.,
                 title: "Reaper".to_string(),
                 canvas: Some("#bevy".to_owned()),
-                // TODO: once the game can be quit without alt-f4, change release to use borderless fullscreen
-                mode: if cfg!(debug_assertions) { WindowMode::Windowed } else { WindowMode::Fullscreen }, 
                 ..Default::default()
             },
             ..default()

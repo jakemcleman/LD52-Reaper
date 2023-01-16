@@ -6,6 +6,7 @@ use bevy::app::AppExit;
 use bevy::ui::widget::ImageMode;
 use bevy_ecs_ldtk::LevelSelection;
 use bevy_ui_navigation::prelude::*;
+use bevy_pkv::PkvStore;
 
 pub struct MenuPlugin;
 
@@ -55,6 +56,7 @@ enum MenuButton {
     Options,
     Menu,
     Resume,
+    Restart,
     Quit,
 }
 
@@ -151,7 +153,7 @@ fn setup_pause_menu(
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
         MenuButton::Resume, Vec2::new(10., 30.), Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
-        MenuButton::LevelSelect, Vec2::new(10., 40.),Vec2::new(19., 8.)); 
+        MenuButton::Restart, Vec2::new(10., 40.),Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
         MenuButton::Menu, Vec2::new(10., 50.),Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
@@ -162,6 +164,7 @@ fn setup_level_select(
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     button_colors: Res<ButtonColors>,
+    data_store: Res<PkvStore>,
 ) {
     let level_sequence = [0, 1, 2, 3, 5, 4, 6, 7, 8, 9, 16, 12, 11, 10, 13, 14];
     let mut sequence_index = 0;
@@ -177,6 +180,10 @@ fn setup_level_select(
         let pos = base_pos + Vec2::new(spacing.x * (col as f32), spacing.y * (row as f32));
         
         spawn_level_select_button(&mut commands, &button_colors, &font_assets.press_start, level_index, sequence_index + 1, pos, size);
+
+        if !crate::world::SaveData::has_completed_level(&data_store, level_index) {
+            break; // TODO - grey out or something, don't just hide
+        }
         
         sequence_index += 1;
     }
@@ -262,6 +269,7 @@ fn spawn_menu_button(
         MenuButton::Options => "Options",
         MenuButton::Menu => "Main Menu",
         MenuButton::Resume => "Resume",
+        MenuButton::Restart => "Restart",
         MenuButton::Quit => "Quit",
     }.to_string();
     
@@ -327,6 +335,7 @@ fn button_nav_events(
     mut state: ResMut<State<GameState>>,
     mut exit: EventWriter<AppExit>,
     mut level_selection: ResMut<LevelSelection>,
+    mut reload_event_writer: EventWriter<crate::world::ReloadWorldEvent>,
     ) {
     for event in events.iter() {
         match event {
@@ -342,6 +351,10 @@ fn button_nav_events(
                             MenuButton::Options => (),
                             MenuButton::Menu => state.replace(GameState::Menu).unwrap(),
                             MenuButton::Resume => state.pop().unwrap(),
+                            MenuButton::Restart => {
+                                reload_event_writer.send(crate::world::ReloadWorldEvent);
+                                state.pop().unwrap()
+                            },
                             MenuButton::Quit => exit.send(AppExit),
                         };
                     }
