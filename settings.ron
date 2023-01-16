@@ -1,1 +1,4 @@
-(fullscreen:false,vsync:true)
+(
+    fullscreen: true,
+    vsync: true,
+)
