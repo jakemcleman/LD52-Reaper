@@ -69,10 +69,10 @@ fn setup_menu(
     button_colors: Res<ButtonColors>,
     sprite_assets: Res<SpriteAssets>,
 ) {
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play(0), Vec2::new(10., 80.), Vec2::new(19., 8.)); 
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.)); 
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play(0), Vec2::new(10., 80.), Vec2::new(19., 8.), true); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.), true); 
+    // spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.), false); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.), true); 
    
     commands.spawn(ImageBundle {
         image: UiImage(sprite_assets.texture_title.clone()),
@@ -151,13 +151,13 @@ fn setup_pause_menu(
    ;
     
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
-        MenuButton::Resume, Vec2::new(10., 30.), Vec2::new(19., 8.)); 
+        MenuButton::Resume, Vec2::new(10., 30.), Vec2::new(19., 8.), true); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
-        MenuButton::Restart, Vec2::new(10., 40.),Vec2::new(19., 8.)); 
+        MenuButton::Restart, Vec2::new(10., 40.),Vec2::new(19., 8.), true); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
-        MenuButton::Menu, Vec2::new(10., 50.),Vec2::new(19., 8.)); 
+        MenuButton::Menu, Vec2::new(10., 50.),Vec2::new(19., 8.), true); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
-        MenuButton::Quit, Vec2::new(10., 60.), Vec2::new(19., 8.)); 
+        MenuButton::Quit, Vec2::new(10., 60.), Vec2::new(19., 8.), true); 
 }
 
 fn setup_level_select(
@@ -188,7 +188,7 @@ fn setup_level_select(
         sequence_index += 1;
     }
     
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Menu, Vec2::new(10., 80.), Vec2::new(19., 8.));
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Menu, Vec2::new(10., 80.), Vec2::new(19., 8.), true);
 }
 
 fn spawn_level_select_button(
@@ -249,6 +249,7 @@ fn spawn_menu_button(
     font: &Handle<Font>, 
     button_type: MenuButton, 
     position: Vec2, size: Vec2,
+    enabled: bool,
     ) {
     let position = UiRect {
         left: Val::Percent(position.x),
@@ -289,7 +290,7 @@ fn spawn_menu_button(
             ..Default::default()
         })
         .insert(button_type)
-        .insert(Focusable::default())
+        .insert(if enabled {Focusable::default()} else {Focusable::lock()})
         .insert(MenuElement)
         .with_children(|parent| {
             parent.spawn(TextBundle {

@@ -1,5 +1,5 @@
 [package]
-name = "ld52_reaper"
+name = "reaper"
 version = "0.4.3"
 publish = false
 authors = ["Jake McLeman"]
