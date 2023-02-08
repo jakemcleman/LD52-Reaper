@@ -50,6 +50,8 @@ enum GameState {
     Paused,
     // Shows level selection menu
     LevelSelect,
+    // Shows win screen, links back to main menu
+    WinScreen,
 }
 
 pub struct GamePlugin;

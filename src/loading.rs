@@ -74,4 +74,6 @@ pub struct SpriteAssets {
     pub texture_title: Handle<Image>,
     #[asset(path = "sprites/pause_menu.png")]
     pub texture_pause_background: Handle<Image>,
+    #[asset(path = "sprites/victory.png")]
+    pub texture_victory: Handle<Image>,
 }

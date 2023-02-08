@@ -18,6 +18,7 @@ pub struct ReloadWorldEvent;
 pub struct ChangeLevelEvent {
     pub index: usize,
     pub completed: bool,
+    pub win_game: bool,
 }
 
 impl Plugin for WorldPlugin {
@@ -109,6 +110,7 @@ fn switch_level(
     mut level_selection: ResMut<LevelSelection>,
     mut change_event_listener: EventReader<ChangeLevelEvent>,
     mut data_store: ResMut<PkvStore>,
+    mut app_state: ResMut<State<GameState>>,
 ) {
     for ev in change_event_listener.iter() {
         if ev.completed {
@@ -117,7 +119,12 @@ fn switch_level(
             }
         }
         
-        *level_selection = LevelSelection::Index(ev.index);
+        if ev.win_game {
+            app_state.set(GameState::WinScreen);
+        }
+        else {
+            *level_selection = LevelSelection::Index(ev.index);
+        }
     }
 }
 

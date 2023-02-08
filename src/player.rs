@@ -2,7 +2,7 @@ use crate::actions::Actions;
 use crate::GameState;
 use crate::sprite_anim::SpriteAnimator;
 use crate::actor::*;
-use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Labeled, SaveData};
+use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Labeled};
 use crate::door::Door;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
@@ -210,6 +210,7 @@ fn player_win(
                     next_level_writer.send(ChangeLevelEvent {
                         index: door.next_level,
                         completed: true,
+                        win_game: door.next_level == 32767,
                     });
                     status.event = Some(ActorEvent::Win);
 

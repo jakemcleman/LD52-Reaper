@@ -1,6 +1,7 @@
 use crate::actions::Actions;
 use crate::loading::*;
 use crate::GameState;
+use crate::settings::Settings;
 use bevy::prelude::*;
 use bevy::app::AppExit;
 use bevy::ui::widget::ImageMode;
@@ -27,6 +28,8 @@ impl Plugin for MenuPlugin {
             .add_system_set(SystemSet::on_update(GameState::Paused).with_system(esc_to_resume))
             .add_system_set(SystemSet::on_exit(GameState::Paused).with_system(cleanup_menu))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(esc_to_menu))
+            .add_system_set(SystemSet::on_enter(GameState::WinScreen).with_system(setup_win_screen))
+            .add_system_set(SystemSet::on_exit(GameState::WinScreen).with_system(cleanup_menu))
         ;
     }
 }
@@ -36,7 +39,6 @@ struct ButtonColors {
     normal: Color,
     highlight: Color,
     active: Color,
-    
 }
 
 impl Default for ButtonColors {
@@ -61,6 +63,12 @@ enum MenuButton {
 }
 
 #[derive(Component)]
+enum SettingToggle {
+    VSync,
+    Fullscreen,
+}
+
+#[derive(Component)]
 struct MenuElement;
 
 fn setup_menu(
@@ -71,7 +79,7 @@ fn setup_menu(
 ) {
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Play(0), Vec2::new(10., 80.), Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::LevelSelect, Vec2::new(30., 80.),Vec2::new(19., 8.)); 
-    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
+    // spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Options, Vec2::new(50., 80.),Vec2::new(19., 8.)); 
     spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, MenuButton::Quit, Vec2::new(70., 80.), Vec2::new(19., 8.)); 
    
     commands.spawn(ImageBundle {
@@ -92,6 +100,41 @@ fn setup_menu(
         ..Default::default()
    }).insert(MenuElement)
    ;
+
+   // spawn_setting_toggle(&mut commands, &button_colors, &font_assets.press_start, SettingToggle::Fullscreen, Vec2::new(10., 20.), Vec2::new(19., 8.), &settings);
+
+}
+
+fn setup_win_screen(
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+    sprite_assets: Res<SpriteAssets>,
+) {
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
+        MenuButton::Menu, Vec2::new(10., 80.),Vec2::new(19., 8.)); 
+    spawn_menu_button(&mut commands, &button_colors, &font_assets.press_start, 
+        MenuButton::Quit, Vec2::new(30., 80.), Vec2::new(19., 8.)); 
+   
+    commands.spawn(ImageBundle {
+        image: UiImage(sprite_assets.texture_victory.clone()),
+        image_mode: ImageMode::KeepAspect,
+        style: Style {
+            size: Size::new(Val::Percent(40.), Val::Auto),
+            position: UiRect {
+                left: Val::Percent(30.),
+                top: Val::Percent(5.),
+                ..Default::default()
+            },
+            position_type: PositionType::Absolute,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        ..Default::default()
+   }).insert(MenuElement)
+   ;
+
 }
 
 fn esc_to_menu(
@@ -289,6 +332,66 @@ fn spawn_menu_button(
             ..Default::default()
         })
         .insert(button_type)
+        .insert(Focusable::default())
+        .insert(MenuElement)
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: label_string,
+                        style: TextStyle {
+                            font: font.clone(),
+                            font_size: 24.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                        },
+                    }],
+                    alignment: Default::default(),
+                },
+                ..Default::default()
+            });
+        });
+}
+
+fn spawn_setting_toggle(
+    commands: &mut Commands, 
+    button_colors: &ButtonColors, 
+    font: &Handle<Font>, 
+    setting_type: SettingToggle, 
+    position: Vec2, size: Vec2,
+    settings: &Settings,
+    ) {
+    let position = UiRect {
+        left: Val::Percent(position.x),
+        top: Val::Percent(position.y),
+        ..Default::default()
+    };
+    
+    let label_string = match setting_type {
+        SettingToggle::Fullscreen => "Fullscreen",
+        SettingToggle::VSync => "VSync",
+    }.to_string();
+
+    let current_setting = match setting_type {
+        SettingToggle::Fullscreen => settings.fullscreen,
+        SettingToggle::VSync => settings.vsync,
+    };
+
+    commands
+        .spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Percent(size.x), Val::Percent(size.y)),
+                position,
+                position_type: PositionType::Absolute,
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                align_self: AlignSelf::Center,
+                ..Default::default()
+            },
+            background_color: if current_setting { button_colors.highlight.into() } else { button_colors.normal.into() },
+            ..Default::default()
+        })
+        .insert(setting_type)
         .insert(Focusable::default())
         .insert(MenuElement)
         .with_children(|parent| {
