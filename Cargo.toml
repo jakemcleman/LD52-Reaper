@@ -1,6 +1,6 @@
 [package]
 name = "reaper"
-version = "0.4.3"
+version = "0.5.0"
 publish = false
 authors = ["Jake McLeman"]
 edition = "2021"
