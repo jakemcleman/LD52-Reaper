@@ -5,30 +5,34 @@ use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
+use bevy_pkv::PkvStore;
 use reaper::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
-use bevy_pkv::PkvStore;
 
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(PkvStore::new("VaguelyDamp", "reaper_game"))
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {
-                width: 1280.,
-                height: 800.,
-                title: "Reaper".to_string(),
-                canvas: Some("#bevy".to_owned()),
-                ..Default::default()
-            },
-            ..default()
-        }).set(ImagePlugin::default_nearest())
-        .set(AssetPlugin {
-            watch_for_changes: cfg!(debug_assertions),
-            ..Default::default()
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1280.,
+                        height: 800.,
+                        title: "Reaper".to_string(),
+                        canvas: Some("#bevy".to_owned()),
+                        ..Default::default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest())
+                .set(AssetPlugin {
+                    watch_for_changes: cfg!(debug_assertions),
+                    ..Default::default()
+                }),
+        )
         .add_plugin(GamePlugin)
         .add_startup_system(set_window_icon)
         .run();

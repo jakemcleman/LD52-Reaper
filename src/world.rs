@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
-use bevy_rapier2d::prelude::*;
-use std::collections::{HashSet, HashMap};
 use bevy_pkv::PkvStore;
+use bevy_rapier2d::prelude::*;
+use std::collections::{HashMap, HashSet};
 
-use crate::{GameState, actor::Scythable, door};
+use crate::{actor::Scythable, door, GameState};
 
 pub struct WorldPlugin;
 
@@ -22,9 +22,8 @@ pub struct ChangeLevelEvent {
 }
 
 impl Plugin for WorldPlugin {
-    fn build(&self, app: &mut App){
-        app
-            .insert_resource(LevelSelection::Index(0))
+    fn build(&self, app: &mut App) {
+        app.insert_resource(LevelSelection::Index(0))
             .add_event::<ReloadWorldEvent>()
             .add_event::<ChangeLevelEvent>()
             .add_plugin(LdtkPlugin)
@@ -47,14 +46,13 @@ impl Plugin for WorldPlugin {
             .register_ldtk_entity::<crate::door::DoorBundle>("Door")
             .register_ldtk_entity::<WheatBundle>("Wheat")
             .register_ldtk_int_cell::<WallBundle>(1)
-            .register_ldtk_int_cell::<SpikeBundle>(2)
-        ;
-        
+            .register_ldtk_int_cell::<SpikeBundle>(2);
+
         #[cfg(debug_assertions)]
         {
-            app
-                .add_system_set(SystemSet::on_update(GameState::Playing).with_system(test_switch_level))
-            ;
+            app.add_system_set(
+                SystemSet::on_update(GameState::Playing).with_system(test_switch_level),
+            );
         }
     }
 }
@@ -67,19 +65,20 @@ impl SaveData {
     }
 
     pub fn has_completed_level(data_store: &PkvStore, level: usize) -> bool {
-        data_store.get::<bool>(SaveData::get_level_key(level).as_str()).unwrap_or(false)
+        data_store
+            .get::<bool>(SaveData::get_level_key(level).as_str())
+            .unwrap_or(false)
     }
 
     pub fn mark_level_complete(data_store: &mut PkvStore, level: usize) {
         println!("completed level {}", level);
-        data_store.set::<bool>(SaveData::get_level_key(level).as_str(), &true).unwrap();
+        data_store
+            .set::<bool>(SaveData::get_level_key(level).as_str(), &true)
+            .unwrap();
     }
 }
 
-fn cleanup_world(
-    mut commands: Commands,
-    query: Query<Entity, Without<OrthographicProjection>>,
-) {
+fn cleanup_world(mut commands: Commands, query: Query<Entity, Without<OrthographicProjection>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
@@ -92,12 +91,12 @@ fn reload_level(
     reload_event_listener: EventReader<ReloadWorldEvent>,
     souls_query: Query<(Entity, &crate::soul::Soul)>,
 ) {
-    if !reload_event_listener.is_empty() ||  input.just_pressed(KeyCode::R) {
+    if !reload_event_listener.is_empty() || input.just_pressed(KeyCode::R) {
         println!("reloading level");
         for level_entity in &level_query {
             commands.entity(level_entity).insert(Respawn);
         }
-        
+
         for (entity, soul) in &souls_query {
             if soul.from_ghost {
                 commands.entity(entity).despawn_recursive();
@@ -118,48 +117,35 @@ fn switch_level(
                 SaveData::mark_level_complete(&mut data_store, index);
             }
         }
-        
+
         if ev.win_game {
             app_state.set(GameState::WinScreen);
-        }
-        else {
+        } else {
             *level_selection = LevelSelection::Index(ev.index);
         }
     }
 }
 
-fn test_switch_level(
-    mut level_selection: ResMut<LevelSelection>,
-    input: Res<Input<KeyCode>>,
-    ) {
+fn test_switch_level(mut level_selection: ResMut<LevelSelection>, input: Res<Input<KeyCode>>) {
     if input.just_pressed(KeyCode::Key1) {
         *level_selection = LevelSelection::Index(0);
-    }
-    else if input.just_pressed(KeyCode::Key2) {
+    } else if input.just_pressed(KeyCode::Key2) {
         *level_selection = LevelSelection::Index(1);
-    }
-    else if input.just_pressed(KeyCode::Key3) {
+    } else if input.just_pressed(KeyCode::Key3) {
         *level_selection = LevelSelection::Index(2);
-    }
-    else if input.just_pressed(KeyCode::Key4) {
+    } else if input.just_pressed(KeyCode::Key4) {
         *level_selection = LevelSelection::Index(3);
-    }
-    else if input.just_pressed(KeyCode::Key5) {
+    } else if input.just_pressed(KeyCode::Key5) {
         *level_selection = LevelSelection::Index(4);
-    }
-    else if input.just_pressed(KeyCode::Key6) {
+    } else if input.just_pressed(KeyCode::Key6) {
         *level_selection = LevelSelection::Index(5);
-    }
-    else if input.just_pressed(KeyCode::Key7) {
+    } else if input.just_pressed(KeyCode::Key7) {
         *level_selection = LevelSelection::Index(6);
-    }
-    else if input.just_pressed(KeyCode::Key8) {
+    } else if input.just_pressed(KeyCode::Key8) {
         *level_selection = LevelSelection::Index(7);
-    }
-    else if input.just_pressed(KeyCode::Key9) {
+    } else if input.just_pressed(KeyCode::Key9) {
         *level_selection = LevelSelection::Index(8);
-    }
-    else if input.just_pressed(KeyCode::Key0) {
+    } else if input.just_pressed(KeyCode::Key0) {
         *level_selection = LevelSelection::Index(9);
     }
 }
@@ -194,13 +180,14 @@ impl LdtkIntCell for SpikeBundle {
 
         SpikeBundle {
             collider: Collider::cuboid(6., 4.),
-            label: Labeled { name: String::from("spikes") },
+            label: Labeled {
+                name: String::from("spikes"),
+            },
             rotation_constraints,
             active_events: ActiveEvents::COLLISION_EVENTS,
             ..Default::default()
         }
     }
-    
 }
 
 #[derive(Clone, Default, Bundle, LdtkEntity)]
@@ -220,15 +207,15 @@ fn cut_wheat(
     mut wheat_query: Query<(Entity, &mut Handle<Image>, &Scythable)>,
     mut commands: Commands,
     sprites: Res<crate::loading::SpriteAssets>,
- ) {
-     for (entity, mut image, scythable) in &mut wheat_query {
-         if scythable.scythed {
-             *image = sprites.texture_wheat_chopped.clone();
-             
-             commands.entity(entity).remove::<Scythable>();
-         }
-     }
- }
+) {
+    for (entity, mut image, scythable) in &mut wheat_query {
+        if scythable.scythed {
+            *image = sprites.texture_wheat_chopped.clone();
+
+            commands.entity(entity).remove::<Scythable>();
+        }
+    }
+}
 
 /// FRom bevy_ecs_ldtk platformer example
 /// Spawns rapier collisions for the walls of a level
@@ -383,7 +370,9 @@ pub fn spawn_wall_collision(
                             ))
                             .insert(RigidBody::Fixed)
                             .insert(Friction::new(1.0))
-                            .insert(Labeled { name: String::from("wall") })
+                            .insert(Labeled {
+                                name: String::from("wall"),
+                            })
                             .insert(Transform::from_xyz(
                                 (wall_rect.left + wall_rect.right + 1) as f32 * grid_size as f32
                                     / 2.,

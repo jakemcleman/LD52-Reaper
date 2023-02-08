@@ -34,16 +34,18 @@ pub fn get_movement(control: GameControl, keyinput: &Res<Input<KeyCode>>) -> f32
     }
 }
 
-pub fn get_gamepad_movement (
+pub fn get_gamepad_movement(
     gamepads: &Res<Gamepads>,
     button_inputs: &Res<Input<GamepadButton>>,
     axes: &Res<Axis<GamepadAxis>>,
 ) -> Vec2 {
     let mut movement = Vec2::ZERO;
-    for gamepad in gamepads.iter() {        
-        movement.x += axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX)).unwrap_or(0.);
+    for gamepad in gamepads.iter() {
+        movement.x += axes
+            .get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX))
+            .unwrap_or(0.);
         //movement.y += axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY)).unwrap_or(0.);
-    
+
         if button_inputs.pressed(GamepadButton::new(gamepad, GamepadButtonType::DPadLeft)) {
             movement.x -= 1.;
         }

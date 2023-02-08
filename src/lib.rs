@@ -2,38 +2,37 @@ mod actions;
 mod loading;
 mod player;
 // mod mainmenu;
-mod ui_events;
-mod sprite_anim;
-mod world;
-mod camera;
 mod actor;
-mod ghost;
-mod soul;
-mod pickup;
+mod camera;
 mod door;
+mod ghost;
 mod menu;
+mod pickup;
 mod settings;
+mod soul;
+mod sprite_anim;
+mod ui_events;
+mod world;
 
 use crate::actions::ActionsPlugin;
+use crate::camera::CameraPlugin;
+use crate::ghost::GhostPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
-use crate::player::PlayerPlugin;
-use crate::ghost::GhostPlugin;
-use crate::world::WorldPlugin;
-use crate::camera::CameraPlugin;
 use crate::pickup::PickupPlugin;
+use crate::player::PlayerPlugin;
 use crate::settings::SettingsPlugin;
+use crate::world::WorldPlugin;
 
+use actor::ActorPlugin;
 use bevy::app::App;
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
+use bevy_rapier2d::render::RapierDebugRenderPlugin;
 use soul::SoulPlugin;
 use sprite_anim::SpriteAnimationPlugin;
 use ui_events::UiEventPlugin;
-use actor::ActorPlugin;
-use bevy_rapier2d::render::RapierDebugRenderPlugin;
-
 
 // This example game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
@@ -71,17 +70,13 @@ impl Plugin for GamePlugin {
             .add_plugin(SoulPlugin)
             .add_plugin(ActorPlugin)
             .add_plugin(SpriteAnimationPlugin)
-            .add_plugin(CameraPlugin)
-            
-        ;
-            
+            .add_plugin(CameraPlugin);
 
         #[cfg(debug_assertions)]
         {
             app.add_plugin(FrameTimeDiagnosticsPlugin::default())
                 .add_plugin(LogDiagnosticsPlugin::default())
-                .add_plugin(RapierDebugRenderPlugin::default())
-            ;
+                .add_plugin(RapierDebugRenderPlugin::default());
         }
     }
 }

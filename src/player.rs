@@ -1,9 +1,9 @@
 use crate::actions::Actions;
-use crate::GameState;
-use crate::sprite_anim::SpriteAnimator;
 use crate::actor::*;
-use crate::world::{ReloadWorldEvent, ChangeLevelEvent, Labeled};
 use crate::door::Door;
+use crate::sprite_anim::SpriteAnimator;
+use crate::world::{ChangeLevelEvent, Labeled, ReloadWorldEvent};
+use crate::GameState;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -20,20 +20,15 @@ pub struct TouchDeath;
 /// Player logic is only active during the State `GameState::Playing`
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_system_set(SystemSet::on_update(GameState::Playing)
+        app.add_system_set(
+            SystemSet::on_update(GameState::Playing)
                 .with_system(player_inputs)
                 .after(actor_status)
                 .after(crate::actions::set_movement_actions)
-                .before(actor_movement)
-            )
-            .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(player_death)
-            )
-            .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(player_win)
-            )
-        ;
+                .before(actor_movement),
+        )
+        .add_system_set(SystemSet::on_update(GameState::Playing).with_system(player_death))
+        .add_system_set(SystemSet::on_update(GameState::Playing).with_system(player_win));
     }
 }
 
@@ -66,50 +61,68 @@ impl LdtkEntity for PlayerBundle {
         texture_atlases: &mut Assets<TextureAtlas>,
     ) -> Self {
         let texture_handle = asset_server.load("sprites/sam1.png");
-        let texture_atlas = TextureAtlas::from_grid(
-            texture_handle, 
-            Vec2::new(48., 32.), 
-            4, 5, None, None);
+        let texture_atlas =
+            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 32.), 4, 5, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
-        
+
         let mut actor = Actor::default();
-        
+
         for field in entity_instance.field_instances.iter() {
             match field.identifier.as_str() {
-                "Speed" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.move_speed = value;
-                },
-                "Drag" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.drag = value;
-                },
-                "Acceleration" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.accel = value;
-                },
-                "Decceleration" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.deccel = value;
-                },
-                "UpGravity" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.up_gravity = value;
-                },
-                "DownGravity" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.down_gravity = value;
-                },
-                "JumpPower" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.jump_speed = value;
-                },
-                "JumpTime" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.jump_time = value;
-                },
-                "AttackTime" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.attack_time = value;
-                },
-                "AttackRange" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.attack_range = value;
-                },
+                "Speed" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.move_speed = value;
+                    }
+                }
+                "Drag" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.drag = value;
+                    }
+                }
+                "Acceleration" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.accel = value;
+                    }
+                }
+                "Decceleration" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.deccel = value;
+                    }
+                }
+                "UpGravity" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.up_gravity = value;
+                    }
+                }
+                "DownGravity" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.down_gravity = value;
+                    }
+                }
+                "JumpPower" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.jump_speed = value;
+                    }
+                }
+                "JumpTime" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.jump_time = value;
+                    }
+                }
+                "AttackTime" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.attack_time = value;
+                    }
+                }
+                "AttackRange" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.attack_range = value;
+                    }
+                }
                 unknown => println!("Unknown field \"{}\" on LDtk player object!", unknown),
             }
         }
-        
+
         PlayerBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
@@ -120,7 +133,9 @@ impl LdtkEntity for PlayerBundle {
             player: Player,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5., 5.),
-            label: Labeled { name: String::from("player") },
+            label: Labeled {
+                name: String::from("player"),
+            },
             active_events: ActiveEvents::COLLISION_EVENTS,
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.5),
@@ -141,35 +156,35 @@ impl LdtkEntity for PlayerBundle {
                 event: None,
                 last_dt: 1.,
             },
-           actor_anim: ActorAnimationStates {
-               idle_row: 0,
-               run_row: 1,
-               jump_row: 2,
-               fall_row: 3,
-               attack_row: 4,
-           },
-           actor_audio: ActorAudio {
-               jump: asset_server.load("audio/jump2.ogg"),
-               land: asset_server.load("audio/land2.ogg"),
-               attack: asset_server.load("audio/attack1.ogg"),
-               hit: asset_server.load("audio/hit.ogg"),
-               death: asset_server.load("audio/death1.ogg"),
-               pickup: asset_server.load("audio/pickup1.ogg"),
-               unlocked: asset_server.load("audio/unlocked.ogg"),
-               victory: asset_server.load("audio/victory.ogg"),
-           },
-           pickup_collector: crate::pickup::PickupCollector,
-           squashy: Squashy {
-               base_scale: Vec2::new(48., 32.),
-               restore_time: 0.15,
-               squash_scale: Vec2::new(1.2, 0.8),
-               squash_time: 0.05,
-               stretch_scale: Vec2::new(0.8, 1.1),
-               stretch_time: 0.05,
-               state: None,
-               state_time: 0.,
-               from_pos: Vec2::ONE,
-           },
+            actor_anim: ActorAnimationStates {
+                idle_row: 0,
+                run_row: 1,
+                jump_row: 2,
+                fall_row: 3,
+                attack_row: 4,
+            },
+            actor_audio: ActorAudio {
+                jump: asset_server.load("audio/jump2.ogg"),
+                land: asset_server.load("audio/land2.ogg"),
+                attack: asset_server.load("audio/attack1.ogg"),
+                hit: asset_server.load("audio/hit.ogg"),
+                death: asset_server.load("audio/death1.ogg"),
+                pickup: asset_server.load("audio/pickup1.ogg"),
+                unlocked: asset_server.load("audio/unlocked.ogg"),
+                victory: asset_server.load("audio/victory.ogg"),
+            },
+            pickup_collector: crate::pickup::PickupCollector,
+            squashy: Squashy {
+                base_scale: Vec2::new(48., 32.),
+                restore_time: 0.15,
+                squash_scale: Vec2::new(1.2, 0.8),
+                squash_time: 0.05,
+                stretch_scale: Vec2::new(0.8, 1.1),
+                stretch_time: 0.05,
+                state: None,
+                state_time: 0.,
+                from_pos: Vec2::ONE,
+            },
         }
     }
 }
@@ -178,14 +193,11 @@ fn player_inputs(
     actions: Res<Actions>,
     mut player_query: Query<(&mut Actor, &ActorStatus), With<Player>>,
 ) {
-    let input = Vec2::new(
-        actions.player_movement.x,
-        actions.player_movement.y,
-    );
+    let input = Vec2::new(actions.player_movement.x, actions.player_movement.y);
     for (mut actor, status) in &mut player_query {
         actor.jump_input = actions.jump;
         actor.can_jump = status.grounded || status.air_timer < actor.jump_time;
-        
+
         actor.attack_input = actions.attack && !status.attacking;
 
         actor.move_input = input.x;
@@ -198,11 +210,11 @@ fn player_win(
     mut doors: Query<&mut Door>,
     mut player_query: Query<(&Transform, &mut ActorStatus), With<Player>>,
 ) {
-    for (transform, mut status) in &mut player_query { 
+    for (transform, mut status) in &mut player_query {
         let shape = Collider::capsule_y(5.5, 5.5);
         let filter = QueryFilter::new();
         let shape_pos = transform.translation.truncate();
-        
+
         rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
             if let Ok(mut door) = doors.get_mut(entity) {
                 if door.required_souls == 0 {
@@ -229,11 +241,11 @@ fn player_death(
     mut reload_writer: EventWriter<ReloadWorldEvent>,
     rapier_context: Res<RapierContext>,
 ) {
-    for (transform, mut status) in &mut player_query { 
+    for (transform, mut status) in &mut player_query {
         let shape = Collider::capsule_y(5.5, 5.5);
         let filter = QueryFilter::new();
         let shape_pos = transform.translation.truncate();
-        
+
         rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
             if let Ok(_touched_ent) = enemies_query.get(entity) {
                 reload_writer.send(ReloadWorldEvent);

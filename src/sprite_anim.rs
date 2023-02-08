@@ -1,14 +1,11 @@
-
-use bevy::prelude::*;
 use crate::GameState;
+use bevy::prelude::*;
 
 pub struct SpriteAnimationPlugin;
 
 impl Plugin for SpriteAnimationPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(animate_sprite))
-        ;
+        app.add_system_set(SystemSet::on_update(GameState::Playing).with_system(animate_sprite));
     }
 }
 
@@ -62,7 +59,7 @@ impl SpriteAnimator {
             self.restart_anim = true;
         }
     }
-    
+
     pub fn set_animation_progress(&mut self, t: f32) {
         self.progress_override = Some(t);
     }
@@ -70,20 +67,17 @@ impl SpriteAnimator {
 
 fn animate_sprite(
     time: Res<Time>,
-    mut sprites: Query<(
-        &mut SpriteAnimator, 
-        &mut TextureAtlasSprite,
-    )>
+    mut sprites: Query<(&mut SpriteAnimator, &mut TextureAtlasSprite)>,
 ) {
     for (mut animator, mut sprite) in sprites.iter_mut() {
         if let Some(t) = animator.progress_override {
             let decimal_frame = (animator.row_length) as f32 * t;
             let frame = decimal_frame as usize;
-            sprite.index = (animator.start_frame + frame).clamp(animator.start_frame , animator.end_frame);
+            sprite.index =
+                (animator.start_frame + frame).clamp(animator.start_frame, animator.end_frame);
             animator.frame_timer = (decimal_frame - (frame as f32)) * animator.seconds_per_frame;
             animator.progress_override = None;
-        }
-        else if animator.playing {
+        } else if animator.playing {
             animator.frame_timer += time.delta_seconds();
 
             if animator.restart_anim || animator.frame_timer > animator.seconds_per_frame {
@@ -94,7 +88,6 @@ fn animate_sprite(
                 if animator.restart_anim || next_index > animator.end_frame {
                     next_index = animator.start_frame;
                     animator.restart_anim = false;
-                    
                 }
 
                 if !animator.should_loop && next_index == animator.end_frame {
@@ -105,6 +98,5 @@ fn animate_sprite(
                 sprite.index = next_index;
             }
         }
-        
     }
 }

@@ -1,4 +1,4 @@
-use bevy::{prelude::*, app::AppExit};
+use bevy::{app::AppExit, prelude::*};
 // use bevy_pkv::PkvStore;
 use crate::GameState;
 
@@ -18,18 +18,17 @@ impl Plugin for UiEventPlugin {
         app
             // Register a event that can be called from the action handler
             .add_event::<UiEvent>()
-            .add_system(event_reader)
-        ;
+            .add_system(event_reader);
     }
 }
 
 /// This reacts to actions fired from UI with custom bevy resources or eventwriters or queries.
 fn event_reader(
-    mut event_reader: EventReader<UiEvent>, 
+    mut event_reader: EventReader<UiEvent>,
     mut exit: EventWriter<AppExit>,
     mut state: ResMut<State<GameState>>,
     // mut pkv: ResMut<PkvStore>,
-    ) {
+) {
     for event in event_reader.iter() {
         match event {
             UiEvent::QuitGame => exit.send(AppExit),

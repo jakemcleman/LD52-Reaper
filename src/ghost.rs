@@ -1,8 +1,8 @@
-use crate::world::Labeled;
-use crate::{GameState, actor};
-use crate::sprite_anim::SpriteAnimator;
-use crate::player::TouchDeath;
 use crate::actor::*;
+use crate::player::TouchDeath;
+use crate::sprite_anim::SpriteAnimator;
+use crate::world::Labeled;
+use crate::{actor, GameState};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -18,16 +18,13 @@ pub struct Ghost {
 /// Player logic is only active during the State `GameState::Playing`
 impl Plugin for GhostPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_system_set(SystemSet::on_update(GameState::Playing)
+        app.add_system_set(
+            SystemSet::on_update(GameState::Playing)
                 .with_system(ghost_movement)
                 .after(actor_status)
-                .before(actor_movement)
-            )
-            .add_system_set(SystemSet::on_update(GameState::Playing)
-                .with_system(ghost_death)
-            )
-        ;
+                .before(actor_movement),
+        )
+        .add_system_set(SystemSet::on_update(GameState::Playing).with_system(ghost_death));
     }
 }
 
@@ -48,8 +45,6 @@ pub struct GhostBundle {
     pub squashy: Squashy,
 }
 
-
-
 impl LdtkEntity for GhostBundle {
     fn bundle_entity(
         entity_instance: &EntityInstance,
@@ -60,51 +55,69 @@ impl LdtkEntity for GhostBundle {
         texture_atlases: &mut Assets<TextureAtlas>,
     ) -> Self {
         let texture_handle = asset_server.load("sprites/ghost.png");
-        let texture_atlas = TextureAtlas::from_grid(
-            texture_handle, 
-            Vec2::new(24., 24.), 
-            4, 1, None, None);
+        let texture_atlas =
+            TextureAtlas::from_grid(texture_handle, Vec2::new(24., 24.), 4, 1, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
-        
+
         let mut actor = Actor::default();
         let mut ghost = Ghost::default();
-        
+
         for field in entity_instance.field_instances.iter() {
             match field.identifier.as_str() {
-                "Speed" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.move_speed = value;
-                },
-                "Drag" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.drag = value;
-                },
-                "Acceleration" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.accel = value;
-                },
-                "Decceleration" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.deccel = value;
-                },
-                "UpGravity" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.up_gravity = value;
-                },
-                "DownGravity" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.down_gravity = value;
-                },
-                "JumpPower" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.jump_speed = value;
-                },
-                "JumpTime" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.jump_time = value;
-                },
-                "AttackTime" => if let FieldValue::Float(Some(value)) = field.value {
-                    actor.attack_time = value;
-                },
-                "StartLeft" => if let FieldValue::Bool(value) = field.value {
-                    ghost.move_left = value;
-                },
+                "Speed" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.move_speed = value;
+                    }
+                }
+                "Drag" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.drag = value;
+                    }
+                }
+                "Acceleration" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.accel = value;
+                    }
+                }
+                "Decceleration" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.deccel = value;
+                    }
+                }
+                "UpGravity" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.up_gravity = value;
+                    }
+                }
+                "DownGravity" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.down_gravity = value;
+                    }
+                }
+                "JumpPower" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.jump_speed = value;
+                    }
+                }
+                "JumpTime" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.jump_time = value;
+                    }
+                }
+                "AttackTime" => {
+                    if let FieldValue::Float(Some(value)) = field.value {
+                        actor.attack_time = value;
+                    }
+                }
+                "StartLeft" => {
+                    if let FieldValue::Bool(value) = field.value {
+                        ghost.move_left = value;
+                    }
+                }
                 unknown => println!("Unknown field \"{}\" on LDtk ghost object!", unknown),
             }
         }
-        
+
         GhostBundle {
             sprite_sheet_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle.clone(),
@@ -114,8 +127,10 @@ impl LdtkEntity for GhostBundle {
             sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
             ghost,
             rigidbody: RigidBody::KinematicPositionBased,
-            collider: Collider::capsule_y(5.0,5.0),
-            label: Labeled { name: String::from("ghost") },
+            collider: Collider::capsule_y(5.0, 5.0),
+            label: Labeled {
+                name: String::from("ghost"),
+            },
             controller: KinematicCharacterController {
                 offset: CharacterLength::Absolute(0.2),
                 autostep: None,
@@ -141,31 +156,28 @@ impl LdtkEntity for GhostBundle {
                 hit_from: None,
             },
             squashy: Squashy {
-               base_scale: Vec2::new(24., 24.),
-               restore_time: 0.25,
-               squash_scale: Vec2::new(1.2, 0.7),
-               squash_time: 0.05,
-               stretch_scale: Vec2::new(0.8, 1.1),
-               stretch_time: 0.05,
-               state: None,
-               state_time: 0.,
-               from_pos: Vec2::ONE,
-           },
+                base_scale: Vec2::new(24., 24.),
+                restore_time: 0.25,
+                squash_scale: Vec2::new(1.2, 0.7),
+                squash_time: 0.05,
+                stretch_scale: Vec2::new(0.8, 1.1),
+                stretch_time: 0.05,
+                state: None,
+                state_time: 0.,
+                from_pos: Vec2::ONE,
+            },
         }
     }
 }
 
-fn ghost_movement(
-    mut ghost_query: Query<(&mut Ghost, &mut Actor, &ActorStatus)>,
-    ) {
+fn ghost_movement(mut ghost_query: Query<(&mut Ghost, &mut Actor, &ActorStatus)>) {
     for (mut ghost, mut actor, status) in &mut ghost_query {
         if ghost.move_left && status.left_wall {
             ghost.move_left = false;
-        }
-        else if !ghost.move_left && status.right_wall {
+        } else if !ghost.move_left && status.right_wall {
             ghost.move_left = true;
         }
-        
+
         actor.move_input = if ghost.move_left { -1. } else { 1. };
     }
 }
@@ -179,28 +191,26 @@ fn ghost_death(
     for (entity, transform, scythable) in &ghost_query {
         if scythable.scythed {
             commands.entity(entity).despawn_recursive();
-            
+
             let texture_handle = sprites.texture_soul.clone();
-            let texture_atlas = TextureAtlas::from_grid(
-                texture_handle, 
-                Vec2::new(20., 20.), 
-                4, 1, None, None);
+            let texture_atlas =
+                TextureAtlas::from_grid(texture_handle, Vec2::new(20., 20.), 4, 1, None, None);
             let texture_atlas_handle = texture_atlases.add(texture_atlas);
-            
+
             let escape_vec = if let Some(hit_from) = scythable.hit_from {
                 160. * (transform.translation.truncate() - hit_from).normalize_or_zero()
             } else {
                 Vec2::new(0., 60.)
             };
-            
+
             commands.spawn(crate::soul::SoulBundle {
-               sprite_sheet_bundle: SpriteSheetBundle {
-                   texture_atlas: texture_atlas_handle,
-                   transform: Transform::from_translation(transform.translation),
-                   ..Default::default()
-               },
-               sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
-                soul: crate::soul::Soul { 
+                sprite_sheet_bundle: SpriteSheetBundle {
+                    texture_atlas: texture_atlas_handle,
+                    transform: Transform::from_translation(transform.translation),
+                    ..Default::default()
+                },
+                sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
+                soul: crate::soul::Soul {
                     can_move: true,
                     accel: 80.,
                     move_speed: 160.,
@@ -210,14 +220,18 @@ fn ghost_death(
                 rigidbody: RigidBody::KinematicPositionBased,
                 collider: Collider::ball(5.),
                 sensor: Sensor,
-                label: Labeled { name: String::from("spawned soul") },
+                label: Labeled {
+                    name: String::from("spawned soul"),
+                },
                 controller: KinematicCharacterController {
                     offset: CharacterLength::Absolute(0.1),
                     autostep: None,
                     filter_flags: QueryFilterFlags::EXCLUDE_SENSORS,
                     ..Default::default()
                 },
-                pickup: crate::pickup::Pickup { pickup_type: Some(crate::pickup::PickupType::Soul )},
+                pickup: crate::pickup::Pickup {
+                    pickup_type: Some(crate::pickup::PickupType::Soul),
+                },
             });
         }
     }

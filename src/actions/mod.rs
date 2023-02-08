@@ -14,10 +14,11 @@ pub struct ActionsPlugin;
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Actions>()
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(set_movement_actions))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing).with_system(set_movement_actions),
+            )
             .add_system(set_pause_actions)
-            .add_system(set_back_actions)
-        ;
+            .add_system(set_back_actions);
     }
 }
 
@@ -32,47 +33,49 @@ pub struct Actions {
 
 pub fn set_pause_actions(
     mut actions: ResMut<Actions>,
-    keyboard_input: Res<Input<KeyCode>>, 
+    keyboard_input: Res<Input<KeyCode>>,
     gamepad_input: Res<Gamepads>,
     gamepad_buttons: Res<Input<GamepadButton>>,
 ) {
     actions.pause = keyboard_input.just_pressed(KeyCode::Escape);
-    
-    for gamepad in gamepad_input.iter() { 
+
+    for gamepad in gamepad_input.iter() {
         if actions.pause {
             break;
         }
-        
-        actions.pause = gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::Start));
+
+        actions.pause =
+            gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::Start));
     }
 }
 
 pub fn set_back_actions(
     mut actions: ResMut<Actions>,
-    keyboard_input: Res<Input<KeyCode>>, 
+    keyboard_input: Res<Input<KeyCode>>,
     gamepad_input: Res<Gamepads>,
     gamepad_buttons: Res<Input<GamepadButton>>,
 ) {
     actions.back = keyboard_input.just_pressed(KeyCode::Escape);
-    
-    for gamepad in gamepad_input.iter() { 
+
+    for gamepad in gamepad_input.iter() {
         if actions.back {
             break;
         }
-        
-        actions.back = gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East));
+
+        actions.back =
+            gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East));
     }
 }
 
 pub fn set_movement_actions(
-    mut actions: ResMut<Actions>, 
-    keyboard_input: Res<Input<KeyCode>>, 
+    mut actions: ResMut<Actions>,
+    keyboard_input: Res<Input<KeyCode>>,
     gamepad_input: Res<Gamepads>,
     gamepad_buttons: Res<Input<GamepadButton>>,
-    gamepad_axes: Res<Axis<GamepadAxis>>
+    gamepad_axes: Res<Axis<GamepadAxis>>,
 ) {
     let gamepad_movement = get_gamepad_movement(&gamepad_input, &gamepad_buttons, &gamepad_axes);
-    
+
     let keyboard_movement = Vec2::new(
         get_movement(GameControl::Right, &keyboard_input)
             - get_movement(GameControl::Left, &keyboard_input),
@@ -87,25 +90,27 @@ pub fn set_movement_actions(
     } else {
         actions.player_movement = Vec2::ZERO;
     }
-    
+
     actions.jump = keyboard_input.pressed(KeyCode::Space) || actions.player_movement.y > 0.5;
-    
-    for gamepad in gamepad_input.iter() { 
+
+    for gamepad in gamepad_input.iter() {
         if actions.jump {
             break;
         }
-        actions.jump = actions.jump || gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
+        actions.jump = actions.jump
+            || gamepad_buttons.pressed(GamepadButton::new(gamepad, GamepadButtonType::South));
     }
-    
-    actions.attack = keyboard_input.just_pressed(KeyCode::Q) || keyboard_input.just_pressed(KeyCode::E) || keyboard_input.just_pressed(KeyCode::M);
-    
-    for gamepad in gamepad_input.iter() { 
+
+    actions.attack = keyboard_input.just_pressed(KeyCode::Q)
+        || keyboard_input.just_pressed(KeyCode::E)
+        || keyboard_input.just_pressed(KeyCode::M);
+
+    for gamepad in gamepad_input.iter() {
         if actions.attack {
             break;
         }
-        actions.attack = actions.attack 
-                        || gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::West))
-                        || gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East))
-                    ;
+        actions.attack = actions.attack
+            || gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::West))
+            || gamepad_buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East));
     }
 }
