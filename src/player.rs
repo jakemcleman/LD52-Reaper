@@ -206,7 +206,6 @@ fn player_win(
         rapier_context.intersections_with_shape(shape_pos, 0., &shape, filter, |entity| -> bool {
             if let Ok(mut door) = doors.get_mut(entity) {
                 if door.required_souls == 0 {
-                    println!("sending event");
                     next_level_writer.send(ChangeLevelEvent {
                         index: door.next_level,
                         completed: true,

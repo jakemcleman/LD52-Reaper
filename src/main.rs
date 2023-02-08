@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use ld52_reaper::GamePlugin;
+use reaper::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
 use bevy_pkv::PkvStore;
