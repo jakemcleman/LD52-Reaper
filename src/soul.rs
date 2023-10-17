@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::loading::AudioAssets;
 use crate::pickup::PickupEvent;
 use crate::{pickup, GameState};
 use crate::{
@@ -35,7 +36,9 @@ pub struct SoulBundle {
     pub pickup: Pickup,
 }
 
-pub struct CollectedSoulEvent;
+pub struct CollectedSoulEvent {
+    pub collector_entity: Entity,
+}
 
 impl Plugin for SoulPlugin {
     fn build(&self, app: &mut App) {
@@ -51,10 +54,15 @@ impl Plugin for SoulPlugin {
 fn soul_pickups(
     mut pickup_reader: EventReader<PickupEvent>,
     mut soul_writer: EventWriter<CollectedSoulEvent>,
+    audio: Res<Audio>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for pickup_ev in pickup_reader.iter() {
         if pickup_ev.pickup_type == pickup::PickupType::Soul {
-            soul_writer.send(CollectedSoulEvent);
+            soul_writer.send(CollectedSoulEvent {
+                collector_entity: pickup_ev.collector_entity,
+            });
+            audio.play(audio_assets.pickup.clone());
         }
     }
 }

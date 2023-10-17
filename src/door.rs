@@ -1,3 +1,4 @@
+use crate::loading::AudioAssets;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -115,6 +116,8 @@ fn update_souls_needed_text(
     mut doors: Query<(&mut Door, &mut Handle<TextureAtlas>)>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    audio: Res<Audio>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for _ in soul_events.iter() {
         for (parent, mut text) in text.iter_mut() {
@@ -136,6 +139,8 @@ fn update_souls_needed_text(
                         );
                         let texture_atlas_handle = texture_atlases.add(texture_atlas);
                         *image_handle = texture_atlas_handle.clone();
+
+                        audio.play(audio_assets.unlocked.clone());
                     }
                 }
             }

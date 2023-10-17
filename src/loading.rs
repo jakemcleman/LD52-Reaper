@@ -44,9 +44,9 @@ pub struct AudioAssets {
     pub death: Handle<AudioSource>,
     #[asset(path = "audio/victory.ogg")]
     pub win: Handle<AudioSource>,
-    #[asset(path = "audio/pickup1.ogg")]
+    #[asset(path = "audio/soul_pickup.ogg")]
     pub pickup: Handle<AudioSource>,
-    #[asset(path = "audio/unlocked.ogg")]
+    #[asset(path = "audio/unlocked2.ogg")]
     pub unlocked: Handle<AudioSource>,
 }
 
