@@ -238,7 +238,7 @@ pub fn actor_status(
 }
 
 pub fn actor_pickup_effects(
-    mut soul_pickup_events: EventReader<PickupEvent>,
+    mut soul_pickup_events: EventReader<CollectedSoulEvent>,
     mut actor_statuses: Query<&mut ActorStatus, With<PickupCollector>>,
 ) {
     for ev in soul_pickup_events.iter() {

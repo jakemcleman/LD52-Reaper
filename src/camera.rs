@@ -65,7 +65,7 @@ pub fn camera_fit_inside_current_level(
         for (level_transform, level_handle) in &level_query {
             if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
                 let level = &ldtk_level.level;
-                let cam_height = 400.0;
+                let cam_height = 360.0;
                 let cam_width = cam_height * window_info.aspect_ratio;
                 orthographic_projection.scaling_mode = bevy::render::camera::ScalingMode::None;
                 orthographic_projection.bottom = cam_height / -2.;
