@@ -1,7 +1,7 @@
+use crate::loading::AudioAssets;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
-use crate::loading::AudioAssets;
 
 use crate::{soul::CollectedSoulEvent, sprite_anim::SpriteAnimator, world::Labeled, GameState};
 

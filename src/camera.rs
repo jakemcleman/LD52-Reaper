@@ -89,11 +89,11 @@ pub fn camera_fit_inside_current_level(
 
                 let camera_left = orthographic_projection.left + camera_transform.translation.x;
                 let camera_right = orthographic_projection.right + camera_transform.translation.x;
-                
+
                 if level_height < cam_height {
-                    camera_transform.translation.y = level_transform.translation.y + (level_height / 2.);
-                }
-                else {
+                    camera_transform.translation.y =
+                        level_transform.translation.y + (level_height / 2.);
+                } else {
                     if camera_bottom < level_bottom {
                         camera_transform.translation.y += level_bottom - camera_bottom;
                     }
@@ -103,9 +103,9 @@ pub fn camera_fit_inside_current_level(
                 }
 
                 if level_width < cam_width {
-                    camera_transform.translation.x = level_transform.translation.x + (level_width / 2.);
-                }
-                else {
+                    camera_transform.translation.x =
+                        level_transform.translation.x + (level_width / 2.);
+                } else {
                     if camera_left < level_left {
                         camera_transform.translation.x += level_left - camera_left;
                     }

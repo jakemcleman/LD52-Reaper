@@ -59,7 +59,9 @@ fn soul_pickups(
 ) {
     for pickup_ev in pickup_reader.iter() {
         if pickup_ev.pickup_type == pickup::PickupType::Soul {
-            soul_writer.send(CollectedSoulEvent { collector_entity: pickup_ev.collector_entity });
+            soul_writer.send(CollectedSoulEvent {
+                collector_entity: pickup_ev.collector_entity,
+            });
             audio.play(audio_assets.pickup.clone());
         }
     }
