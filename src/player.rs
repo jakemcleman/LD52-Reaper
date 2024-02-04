@@ -117,6 +117,11 @@ impl LdtkEntity for PlayerBundle {
                         actor.jump_time = value;
                     }
                 }
+                "CanAttack" => {
+                    if let FieldValue::Bool(value) = field.value {
+                        actor.can_attack = value
+                    }
+                }
                 "AttackTime" => {
                     if let FieldValue::Float(Some(value)) = field.value {
                         actor.attack_time = value;

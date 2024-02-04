@@ -357,16 +357,16 @@ fn actor_animations(
         &ActorAnimationStates,
         &mut SpriteAnimator,
         &mut TextureAtlasSprite,
-        &Children
+        Option<&Children>
     )>,
     mut weapon_query: Query<(
         &ActorWeapon,
         &mut SpriteAnimator,
         &mut TextureAtlasSprite
-    ),
-    Without<Actor>>
+    ), Without<Actor>
+    >,
 ) {
-    for (actor, status, anim_states, mut animator, mut sprite, children) in &mut actor_query {
+    for (actor, status, anim_states, mut animator, mut sprite, opt_children) in &mut actor_query {
          if status.grounded {
             if status.velocity.x.abs() > 20. {
                 animator.set_row(anim_states.run_row);
@@ -383,22 +383,24 @@ fn actor_animations(
 
         sprite.flip_x = status.facing_left;
 
-        for child in children.iter() {
-            if let Ok((_, mut weapon_animator, mut weapon_sprite)) = weapon_query.get_mut(*child) {
-                let progress = animator.get_frame();
-                if status.attacking {
-                    let t = status.attack_timer / actor.attack_time;
-                    weapon_animator.set_row(anim_states.attack_row);
-                    weapon_animator.set_animation_progress(t);
+        if let Some(children) = opt_children {
+            for child in children.iter() {
+                if let Ok((_, mut weapon_animator, mut weapon_sprite)) = weapon_query.get_mut(*child) {
+                    let progress = animator.get_frame();
+                    if status.attacking {
+                        let t = status.attack_timer / actor.attack_time;
+                        weapon_animator.set_row(anim_states.attack_row);
+                        weapon_animator.set_animation_progress(t);
+                    }
+                    else {
+                        // Sync animators
+                        let row = animator.get_row();
+                        weapon_animator.set_row(row);
+                        weapon_animator.set_frame(progress);
+                    }
+        
+                    weapon_sprite.flip_x = status.facing_left;
                 }
-                else {
-                    // Sync animators
-                    let row = animator.get_row();
-                    weapon_animator.set_row(row);
-                    weapon_animator.set_frame(progress);
-                }
-    
-                weapon_sprite.flip_x = status.facing_left;
             }
         }
     }
