@@ -23,6 +23,7 @@ pub struct Actor {
     pub jump_input: bool,
     pub can_jump: bool,
     pub can_attack: bool,
+    pub attack_sprite: Option<Handle<TextureAtlas>>,
     pub attack_input: bool,
     pub attack_time: f32,
     pub attack_range: f32,
@@ -101,6 +102,17 @@ pub enum ActorEvent {
     Unlock,
 }
 
+#[derive(Component, Debug, Default, Clone)]
+pub struct ActorWeapon;
+
+#[derive(Clone, Default, Bundle)]
+pub struct ActorWeaponBundle {
+    #[bundle]
+    pub sprite_sheet_bundle: SpriteSheetBundle,
+    pub sprite_animator: SpriteAnimator,
+    pub weapon: ActorWeapon,
+}
+
 impl Squashy {
     pub fn change_state(&mut self, next: Option<SquashStretchState>) {
         self.from_pos = self.get_current_state_end_pos();
@@ -148,6 +160,7 @@ impl Plugin for ActorPlugin {
                 .with_system(actor_audio)
                 .with_system(actor_squash_events)
                 .with_system(actor_pickup_effects)
+                .with_system(actor_weapon_spawn)
                 .before(actor_event_clear)
                 .after(actor_status)
                 .after(actor_movement)
@@ -179,6 +192,7 @@ impl Default for Actor {
             attack_time: 0.2,
             attack_input: false,
             attack_range: 16.0,
+            attack_sprite: None,
             can_jump: false,
             can_attack: false,
         }
@@ -343,14 +357,17 @@ fn actor_animations(
         &ActorAnimationStates,
         &mut SpriteAnimator,
         &mut TextureAtlasSprite,
+        &Children
     )>,
+    mut weapon_query: Query<(
+        &ActorWeapon,
+        &mut SpriteAnimator,
+        &mut TextureAtlasSprite
+    ),
+    Without<Actor>>
 ) {
-    for (actor, status, anim_states, mut animator, mut sprite) in &mut actor_query {
-        if status.attacking {
-            let t = status.attack_timer / actor.attack_time;
-            // animator.set_row(anim_states.attack_row);
-            // animator.set_animation_progress(t);
-        } else if status.grounded {
+    for (actor, status, anim_states, mut animator, mut sprite, children) in &mut actor_query {
+         if status.grounded {
             if status.velocity.x.abs() > 20. {
                 animator.set_row(anim_states.run_row);
             } else {
@@ -365,6 +382,25 @@ fn actor_animations(
         }
 
         sprite.flip_x = status.facing_left;
+
+        for child in children.iter() {
+            if let Ok((_, mut weapon_animator, mut weapon_sprite)) = weapon_query.get_mut(*child) {
+                let progress = animator.get_frame();
+                if status.attacking {
+                    let t = status.attack_timer / actor.attack_time;
+                    weapon_animator.set_row(anim_states.attack_row);
+                    weapon_animator.set_animation_progress(t);
+                }
+                else {
+                    // Sync animators
+                    let row = animator.get_row();
+                    weapon_animator.set_row(row);
+                    weapon_animator.set_frame(progress);
+                }
+    
+                weapon_sprite.flip_x = status.facing_left;
+            }
+        }
     }
 }
 
@@ -440,5 +476,22 @@ fn squash_animation(mut squish_query: Query<(&Squashy, &mut TextureAtlasSprite)>
 pub fn actor_event_clear(mut actor_query: Query<&mut ActorStatus>) {
     for mut status in &mut actor_query {
         status.event = None;
+    }
+}
+
+pub fn actor_weapon_spawn(actor_query: Query<(Entity, &Actor), Added<Actor>>, mut commands: Commands) {
+    for (entity, actor) in actor_query.iter() {
+        if actor.can_attack {
+            if let Some(texture_atlas) = &actor.attack_sprite {
+                commands.spawn(ActorWeaponBundle {
+                    sprite_sheet_bundle: SpriteSheetBundle { 
+                        texture_atlas: texture_atlas.clone(),
+                        ..Default::default() 
+                    },
+                    sprite_animator: SpriteAnimator::new(0, 3, 4, 0.2, true, false),
+                    weapon: ActorWeapon,
+                }).set_parent(entity);
+            }
+        }
     }
 }

@@ -74,7 +74,7 @@ impl LdtkEntity for DoorBundle {
                 texture_atlas: texture_atlas_handle,
                 ..Default::default()
             },
-            sprite_animator: SpriteAnimator::new(0, 3, 4, 0.2, true),
+            sprite_animator: SpriteAnimator::new(0, 3, 4, 0.2, true, true),
             collider: Collider::cuboid(8., 16.),
             label: Labeled {
                 name: String::from("door to ") + door.next_level.to_string().as_str(),

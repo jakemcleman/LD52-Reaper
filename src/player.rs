@@ -72,6 +72,9 @@ impl LdtkEntity for PlayerBundle {
 
         let mut actor = Actor::default();
 
+        actor.can_attack = true;
+        actor.attack_sprite = Some(scythe_atlas_handle);
+
         for field in entity_instance.field_instances.iter() {
             match field.identifier.as_str() {
                 "Speed" => {
@@ -134,7 +137,7 @@ impl LdtkEntity for PlayerBundle {
                 transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                 ..Default::default()
             },
-            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
+            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true, true),
             player: Player,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5., 5.),
