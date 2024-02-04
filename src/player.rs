@@ -62,7 +62,7 @@ impl LdtkEntity for PlayerBundle {
     ) -> Self {
         let texture_handle = asset_server.load("sprites/sam1.png");
         let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 32.), 4, 5, None, None);
+            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 48.), 4, 6, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
         let mut actor = Actor::default();
@@ -164,14 +164,14 @@ impl LdtkEntity for PlayerBundle {
                 attack_row: 4,
             },
             actor_audio: ActorAudio {
-                jump: asset_server.load("audio/jump2.ogg"),
+                jump: asset_server.load("audio/jump3.ogg"),
                 land: asset_server.load("audio/land2.ogg"),
                 attack: asset_server.load("audio/attack1.ogg"),
                 hit: asset_server.load("audio/hit.ogg"),
                 death: asset_server.load("audio/death1.ogg"),
-                pickup: asset_server.load("audio/soul_pickup.ogg"),
+                pickup: asset_server.load("audio/soul_pickup2.ogg"),
                 unlocked: asset_server.load("audio/unlocked2.ogg"),
-                victory: asset_server.load("audio/victory.ogg"),
+                victory: asset_server.load("audio/victory2.ogg"),
             },
             pickup_collector: crate::pickup::PickupCollector,
             squashy: Squashy {
