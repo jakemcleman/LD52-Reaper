@@ -62,8 +62,13 @@ impl LdtkEntity for PlayerBundle {
     ) -> Self {
         let texture_handle = asset_server.load("sprites/sam1.png");
         let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 48.), 4, 6, None, None);
+            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 48.), 4, 4, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
+        let scythe_texture_handle = asset_server.load("sprites/scythe1.png");
+        let scythe_texture_atlas = 
+            TextureAtlas::from_grid(scythe_texture_handle, Vec2::new(48., 48.), 4, 6, None, None);
+        let scythe_atlas_handle = texture_atlases.add(scythe_texture_atlas);
 
         let mut actor = Actor::default();
 

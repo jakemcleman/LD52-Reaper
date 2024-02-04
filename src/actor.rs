@@ -22,6 +22,7 @@ pub struct Actor {
     pub move_input: f32,
     pub jump_input: bool,
     pub can_jump: bool,
+    pub can_attack: bool,
     pub attack_input: bool,
     pub attack_time: f32,
     pub attack_range: f32,
@@ -179,6 +180,7 @@ impl Default for Actor {
             attack_input: false,
             attack_range: 16.0,
             can_jump: false,
+            can_attack: false,
         }
     }
 }
@@ -279,7 +281,7 @@ pub fn actor_attack(
                     true
                 },
             );
-        } else if actor.attack_input {
+        } else if actor.can_attack && actor.attack_input {
             status.attacking = true;
             status.attack_timer = 0.;
             status.event = Some(ActorEvent::Attack);
@@ -346,8 +348,8 @@ fn actor_animations(
     for (actor, status, anim_states, mut animator, mut sprite) in &mut actor_query {
         if status.attacking {
             let t = status.attack_timer / actor.attack_time;
-            animator.set_row(anim_states.attack_row);
-            animator.set_animation_progress(t);
+            // animator.set_row(anim_states.attack_row);
+            // animator.set_animation_progress(t);
         } else if status.grounded {
             if status.velocity.x.abs() > 20. {
                 animator.set_row(anim_states.run_row);

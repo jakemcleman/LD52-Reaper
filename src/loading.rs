@@ -58,6 +58,8 @@ pub struct SpriteAssets {
     pub texture_dampboi: Handle<Image>,
     #[asset(path = "sprites/sam1.png")]
     pub texture_sam: Handle<Image>,
+    #[asset(path = "sprites/scythe1.png")]
+    pub texture_scythe: Handle<Image>,
     #[asset(path = "sprites/ghost.png")]
     pub texture_ghost: Handle<Image>,
     #[asset(path = "sprites/soul.png")]
