@@ -47,6 +47,7 @@ pub struct PlayerBundle {
     pub actor_status: ActorStatus,
     pub actor_anim: ActorAnimationStates,
     pub actor_audio: ActorAudio,
+    pub actor_effects: ActorEffects,
     pub pickup_collector: crate::pickup::PickupCollector,
     pub squashy: Squashy,
 }
@@ -69,6 +70,16 @@ impl LdtkEntity for PlayerBundle {
         let scythe_texture_atlas = 
             TextureAtlas::from_grid(scythe_texture_handle, Vec2::new(48., 48.), 4, 6, None, None);
         let scythe_atlas_handle = texture_atlases.add(scythe_texture_atlas);
+
+        let launch_texture_handle = asset_server.load("sprites/launch_effect.png");
+        let launch_texture_atlas = 
+            TextureAtlas::from_grid(launch_texture_handle, Vec2::new(32., 32.), 4, 1, None, None);
+        let launch_atlas_handle = texture_atlases.add(launch_texture_atlas);
+
+        let pickup_texture_handle = asset_server.load("sprites/soulburst.png");
+        let pickup_texture_atlas = 
+            TextureAtlas::from_grid(pickup_texture_handle, Vec2::new(32., 32.), 4, 1, None, None);
+        let pickup_atlas_handle = texture_atlases.add(pickup_texture_atlas);
 
         let mut actor = Actor::default();
 
@@ -185,6 +196,10 @@ impl LdtkEntity for PlayerBundle {
                 pickup: asset_server.load("audio/soul_pickup2.ogg"),
                 unlocked: asset_server.load("audio/unlocked2.ogg"),
                 victory: asset_server.load("audio/victory2.ogg"),
+            },
+            actor_effects: ActorEffects {
+                jump: launch_atlas_handle,
+                pickup: pickup_atlas_handle,
             },
             pickup_collector: crate::pickup::PickupCollector,
             squashy: Squashy {

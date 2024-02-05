@@ -38,6 +38,7 @@ pub struct SoulBundle {
 
 pub struct CollectedSoulEvent {
     pub collector_entity: Entity,
+    pub pickup_pos: Vec3,
 }
 
 impl Plugin for SoulPlugin {
@@ -61,6 +62,7 @@ fn soul_pickups(
         if pickup_ev.pickup_type == pickup::PickupType::Soul {
             soul_writer.send(CollectedSoulEvent {
                 collector_entity: pickup_ev.collector_entity,
+                pickup_pos: pickup_ev.pickup_position,
             });
             audio.play(audio_assets.pickup.clone());
         }

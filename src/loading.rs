@@ -78,4 +78,8 @@ pub struct SpriteAssets {
     pub texture_pause_background: Handle<Image>,
     #[asset(path = "sprites/victory.png")]
     pub texture_victory: Handle<Image>,
+    #[asset(path = "sprites/launch_effect.png")]
+    pub texture_launch_effect: Handle<Image>,
+    #[asset(path = "sprites/soulburst.png")]
+    pub texture_soulburst: Handle<Image>,
 }
