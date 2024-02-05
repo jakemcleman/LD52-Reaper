@@ -5,7 +5,11 @@ pub struct SpriteAnimationPlugin;
 
 impl Plugin for SpriteAnimationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::Playing).with_system(animate_sprite));
+        app.add_system_set(
+            SystemSet::on_update(GameState::Playing)
+            .with_system(animate_sprite)
+            .with_system(destroy_finished_animators)
+        );
     }
 }
 
@@ -21,6 +25,17 @@ pub struct SpriteAnimator {
     restart_anim: bool,
     progress_override: Option<f32>,
     cur_frame: usize,
+}
+
+#[derive(Component, Default, Clone)]
+pub struct DestroyAnimatorOnFinish;
+
+#[derive(Clone, Default, Bundle)]
+pub struct EffectBundle {
+    #[bundle]
+    pub sprite_sheet_bundle: SpriteSheetBundle,
+    pub sprite_animator: SpriteAnimator,
+    pub destroy: DestroyAnimatorOnFinish,
 }
 
 impl SpriteAnimator {
@@ -78,6 +93,10 @@ impl SpriteAnimator {
     pub fn set_animation_progress(&mut self, t: f32) {
         self.progress_override = Some(t);
     }
+  
+    pub fn finished(&self) -> bool {
+        !self.playing && (self.cur_frame == self.end_frame)
+    }
 
     pub fn get_animation_progress(&self) -> f32 {
         (self.cur_frame as f32 / self.row_length as f32) + (self.frame_timer / self.seconds_per_frame)
@@ -117,6 +136,17 @@ fn animate_sprite(
                 sprite.index = next_index;
                 animator.cur_frame = next_index - animator.start_frame;
             }
+        }
+    }
+}
+
+fn destroy_finished_animators(
+    sprites: Query<(Entity, &SpriteAnimator), With<DestroyAnimatorOnFinish>>,
+    mut commands: Commands,
+) {
+    for (entity, animator) in sprites.iter() {
+        if animator.finished() {
+            commands.entity(entity).despawn();
         }
     }
 }

@@ -1,11 +1,11 @@
 use crate::{
     pickup::{check_for_pickups, PickupCollector, PickupEvent},
     soul::CollectedSoulEvent,
-    sprite_anim::SpriteAnimator,
+    sprite_anim::{EffectBundle, SpriteAnimator},
     GameState,
 };
 use bevy::{prelude::*, sprite::Anchor};
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{na::distance, prelude::*};
 
 pub struct ActorPlugin;
 
@@ -62,6 +62,12 @@ pub struct ActorAudio {
     pub pickup: Handle<AudioSource>,
     pub unlocked: Handle<AudioSource>,
     pub victory: Handle<AudioSource>,
+}
+
+#[derive(Component, Default, Clone)]
+pub struct ActorEffects {
+    pub jump: Handle<TextureAtlas>,
+    pub pickup: Handle<TextureAtlas>,
 }
 
 #[derive(Component, Debug, Default, Clone)]
@@ -158,6 +164,7 @@ impl Plugin for ActorPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::Playing)
                 .with_system(actor_audio)
+                .with_system(actor_vfx)
                 .with_system(actor_squash_events)
                 .with_system(actor_pickup_effects)
                 .with_system(actor_weapon_spawn)
@@ -255,11 +262,22 @@ pub fn actor_status(
 
 pub fn actor_pickup_effects(
     mut soul_pickup_events: EventReader<CollectedSoulEvent>,
-    mut actor_statuses: Query<&mut ActorStatus, With<PickupCollector>>,
+    mut actor_statuses: Query<(&mut ActorStatus, &ActorEffects), With<PickupCollector>>,
+    mut commands: Commands,
 ) {
     for ev in soul_pickup_events.iter() {
-        if let Ok(mut status) = actor_statuses.get_mut(ev.collector_entity) {
+        if let Ok((mut status, fx)) = actor_statuses.get_mut(ev.collector_entity) {
             status.event = Some(ActorEvent::Pickup);
+
+            commands.spawn(EffectBundle {
+                sprite_sheet_bundle: SpriteSheetBundle {
+                    texture_atlas: fx.pickup.clone(),
+                    transform: Transform::from_translation(ev.pickup_pos),
+                    ..Default::default()
+                },
+                sprite_animator: SpriteAnimator::new(0, 3, 4, 0.05, false, true),
+                ..Default::default()
+            }); 
         }
     }
 }
@@ -418,6 +436,30 @@ fn actor_audio(actor_query: Query<(&ActorStatus, &ActorAudio)>, audio: Res<Audio
                 ActorEvent::Pickup => audio.play(actor_sounds.pickup.clone()),
                 ActorEvent::Unlock => audio.play(actor_sounds.unlocked.clone()),
                 ActorEvent::Win => audio.play(actor_sounds.victory.clone()),
+            };
+        }
+    }
+}
+
+fn actor_vfx(
+    actor_query: Query<(&Transform, &ActorStatus, &ActorEffects)>,
+    mut commands: Commands,
+) {
+    for (transform, status, actor_fx) in &actor_query {
+        if let Some(event) = &status.event {
+            match event {
+                ActorEvent::Launched => {
+                    commands.spawn(EffectBundle {
+                        sprite_sheet_bundle: SpriteSheetBundle {
+                            texture_atlas: actor_fx.jump.clone(),
+                            transform: Transform::from_translation(transform.translation + Vec3::new(0., 4., 0.)),
+                            ..Default::default()
+                        },
+                        sprite_animator: SpriteAnimator::new(0, 3, 4, 0.05, false, true),
+                        ..Default::default()
+                    }); 
+                },
+                _ => ()
             };
         }
     }
