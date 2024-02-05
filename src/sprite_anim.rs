@@ -93,9 +93,13 @@ impl SpriteAnimator {
     pub fn set_animation_progress(&mut self, t: f32) {
         self.progress_override = Some(t);
     }
-
+  
     pub fn finished(&self) -> bool {
         !self.playing && (self.cur_frame == self.end_frame)
+    }
+
+    pub fn get_animation_progress(&self) -> f32 {
+        (self.cur_frame as f32 / self.row_length as f32) + (self.frame_timer / self.seconds_per_frame)
     }
 }
 
