@@ -62,10 +62,18 @@ impl LdtkEntity for PlayerBundle {
     ) -> Self {
         let texture_handle = asset_server.load("sprites/sam1.png");
         let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 32.), 4, 5, None, None);
+            TextureAtlas::from_grid(texture_handle, Vec2::new(48., 48.), 4, 4, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
+        let scythe_texture_handle = asset_server.load("sprites/scythe1.png");
+        let scythe_texture_atlas = 
+            TextureAtlas::from_grid(scythe_texture_handle, Vec2::new(48., 48.), 4, 6, None, None);
+        let scythe_atlas_handle = texture_atlases.add(scythe_texture_atlas);
+
         let mut actor = Actor::default();
+
+        actor.can_attack = true;
+        actor.attack_sprite = Some(scythe_atlas_handle);
 
         for field in entity_instance.field_instances.iter() {
             match field.identifier.as_str() {
@@ -109,6 +117,11 @@ impl LdtkEntity for PlayerBundle {
                         actor.jump_time = value;
                     }
                 }
+                "CanAttack" => {
+                    if let FieldValue::Bool(value) = field.value {
+                        actor.can_attack = value
+                    }
+                }
                 "AttackTime" => {
                     if let FieldValue::Float(Some(value)) = field.value {
                         actor.attack_time = value;
@@ -129,7 +142,7 @@ impl LdtkEntity for PlayerBundle {
                 transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                 ..Default::default()
             },
-            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
+            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true, true),
             player: Player,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5., 5.),
@@ -164,14 +177,14 @@ impl LdtkEntity for PlayerBundle {
                 attack_row: 4,
             },
             actor_audio: ActorAudio {
-                jump: asset_server.load("audio/jump2.ogg"),
+                jump: asset_server.load("audio/jump3.ogg"),
                 land: asset_server.load("audio/land2.ogg"),
                 attack: asset_server.load("audio/attack1.ogg"),
                 hit: asset_server.load("audio/hit.ogg"),
                 death: asset_server.load("audio/death1.ogg"),
-                pickup: asset_server.load("audio/soul_pickup.ogg"),
+                pickup: asset_server.load("audio/soul_pickup2.ogg"),
                 unlocked: asset_server.load("audio/unlocked2.ogg"),
-                victory: asset_server.load("audio/victory.ogg"),
+                victory: asset_server.load("audio/victory2.ogg"),
             },
             pickup_collector: crate::pickup::PickupCollector,
             squashy: Squashy {

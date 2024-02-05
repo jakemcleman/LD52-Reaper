@@ -124,7 +124,7 @@ impl LdtkEntity for GhostBundle {
                 transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                 ..Default::default()
             },
-            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
+            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true, true),
             ghost,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::capsule_y(5.0, 5.0),
@@ -209,7 +209,7 @@ fn ghost_death(
                     transform: Transform::from_translation(transform.translation),
                     ..Default::default()
                 },
-                sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
+                sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true, true),
                 soul: crate::soul::Soul {
                     can_move: true,
                     accel: 80.,

@@ -116,7 +116,7 @@ impl LdtkEntity for SoulBundle {
                 transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                 ..Default::default()
             },
-            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true),
+            sprite_animator: crate::sprite_anim::SpriteAnimator::new(0, 3, 4, 0.2, true, true),
             soul,
             rigidbody: RigidBody::KinematicPositionBased,
             collider: Collider::ball(5.),

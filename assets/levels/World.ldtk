@@ -11,7 +11,7 @@
 	"iid": "530702e0-7820-11ed-a280-25043945f704",
 	"jsonVersion": "1.3.3",
 	"appBuildId": 467698,
-	"nextUid": 95,
+	"nextUid": 96,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -1251,6 +1251,43 @@
 					"allowedRefsEntityUid": null,
 					"allowedRefTags": [],
 					"tilesetUid": null
+				},
+				{
+					"identifier": "CanAttack",
+					"doc": null,
+					"__type": "Bool",
+					"uid": 95,
+					"type": "F_Bool",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayScale": 0,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_Bool",
+						"params": [ true ]
+					},
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
 				}
 			]
 		},
@@ -2015,7 +2052,11 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": false, "__tile": null, "defUid": 95, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ false ]
+								}] }
 							]
 						},
 						{
@@ -2242,7 +2283,11 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": false, "__tile": null, "defUid": 95, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ false ]
+								}] }
 							]
 						},
 						{
@@ -2708,7 +2753,11 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": false, "__tile": null, "defUid": 95, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ false ]
+								}] }
 							]
 						},
 						{
@@ -3271,7 +3320,11 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": false, "__tile": null, "defUid": 95, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ false ]
+								}] }
 							]
 						},
 						{
@@ -3719,7 +3772,11 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] }
 							]
 						},
 						{
@@ -4078,7 +4135,11 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": false, "__tile": null, "defUid": 95, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ false ]
+								}] }
 							]
 						},
 						{
@@ -4401,7 +4462,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -5006,7 +5068,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -5402,7 +5465,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -6276,7 +6340,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -7056,7 +7121,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -8200,7 +8266,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -8737,7 +8804,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -9515,7 +9583,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -10570,7 +10639,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -11286,7 +11356,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{
@@ -12933,7 +13004,8 @@
 								{ "__identifier": "JumpPower", "__type": "Float", "__value": 210, "__tile": null, "defUid": 42, "realEditorValues": [] },
 								{ "__identifier": "JumpTime", "__type": "Float", "__value": 0.2, "__tile": null, "defUid": 43, "realEditorValues": [] },
 								{ "__identifier": "AttackTime", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 46, "realEditorValues": [] },
-								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] }
+								{ "__identifier": "AttackRange", "__type": "Float", "__value": 16, "__tile": null, "defUid": 70, "realEditorValues": [] },
+								{ "__identifier": "CanAttack", "__type": "Bool", "__value": true, "__tile": null, "defUid": 95, "realEditorValues": [] }
 							]
 						},
 						{

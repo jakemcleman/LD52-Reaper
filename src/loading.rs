@@ -32,7 +32,7 @@ pub struct FontAssets {
 
 #[derive(AssetCollection, Resource)]
 pub struct AudioAssets {
-    #[asset(path = "audio/jump2.ogg")]
+    #[asset(path = "audio/jump3.ogg")]
     pub jump: Handle<AudioSource>,
     #[asset(path = "audio/land2.ogg")]
     pub land: Handle<AudioSource>,
@@ -42,11 +42,11 @@ pub struct AudioAssets {
     pub hit: Handle<AudioSource>,
     #[asset(path = "audio/death1.ogg")]
     pub death: Handle<AudioSource>,
-    #[asset(path = "audio/victory.ogg")]
+    #[asset(path = "audio/victory2.ogg")]
     pub win: Handle<AudioSource>,
-    #[asset(path = "audio/soul_pickup.ogg")]
+    #[asset(path = "audio/soul_pickup2.ogg")]
     pub pickup: Handle<AudioSource>,
-    #[asset(path = "audio/unlocked2.ogg")]
+    #[asset(path = "audio/unlocked3.ogg")]
     pub unlocked: Handle<AudioSource>,
 }
 
@@ -58,6 +58,8 @@ pub struct SpriteAssets {
     pub texture_dampboi: Handle<Image>,
     #[asset(path = "sprites/sam1.png")]
     pub texture_sam: Handle<Image>,
+    #[asset(path = "sprites/scythe1.png")]
+    pub texture_scythe: Handle<Image>,
     #[asset(path = "sprites/ghost.png")]
     pub texture_ghost: Handle<Image>,
     #[asset(path = "sprites/soul.png")]

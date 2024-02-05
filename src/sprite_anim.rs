@@ -20,6 +20,7 @@ pub struct SpriteAnimator {
     playing: bool,
     restart_anim: bool,
     progress_override: Option<f32>,
+    cur_frame: usize,
 }
 
 impl SpriteAnimator {
@@ -29,6 +30,7 @@ impl SpriteAnimator {
         row_length: usize,
         seconds_per_frame: f32,
         should_loop: bool,
+        start_playing: bool,
     ) -> SpriteAnimator {
         SpriteAnimator {
             start_frame,
@@ -37,9 +39,10 @@ impl SpriteAnimator {
             seconds_per_frame,
             frame_timer: 0.,
             should_loop,
-            playing: true,
+            playing: start_playing,
             restart_anim: false,
             progress_override: None,
+            cur_frame: 0,
         }
     }
 
@@ -60,8 +63,24 @@ impl SpriteAnimator {
         }
     }
 
+    pub fn get_row(&self) -> usize {
+        self.start_frame / self.row_length
+    }
+
+    pub fn get_frame(&self) -> usize {
+        self.cur_frame
+    }
+
+    pub fn set_frame(&mut self, index: usize) {
+        self.progress_override = Some(index as f32 / self.row_length as f32);
+    }
+
     pub fn set_animation_progress(&mut self, t: f32) {
         self.progress_override = Some(t);
+    }
+
+    pub fn get_animation_progress(&self) -> f32 {
+        (self.cur_frame as f32 / self.row_length as f32) + (self.frame_timer / self.seconds_per_frame)
     }
 }
 
@@ -96,6 +115,7 @@ fn animate_sprite(
                 }
 
                 sprite.index = next_index;
+                animator.cur_frame = next_index - animator.start_frame;
             }
         }
     }
