@@ -173,7 +173,7 @@ impl LdtkEntity for PlayerBundle {
                 facing_left: false,
                 velocity: Vec2::ZERO,
                 air_timer: 0.,
-                attacking: false,
+                attack_direction: None,
                 attack_timer: 0.,
                 left_wall: false,
                 right_wall: false,
@@ -221,12 +221,17 @@ fn player_inputs(
     actions: Res<Actions>,
     mut player_query: Query<(&mut Actor, &ActorStatus), With<Player>>,
 ) {
-    let input = Vec2::new(actions.player_movement.x, actions.player_movement.y);
+    let input: Vec2 = Vec2::new(actions.player_movement.x, actions.player_movement.y);
     for (mut actor, status) in &mut player_query {
         actor.jump_input = actions.jump;
         actor.can_jump = status.grounded || status.air_timer < actor.jump_time;
 
-        actor.attack_input = actions.attack && !status.attacking;
+        if actions.attack && status.attack_direction.is_none() {
+            actor.attack_input = Some(input);
+        }
+        else {
+            actor.attack_input = None;
+        }
 
         actor.move_input = input.x;
     }

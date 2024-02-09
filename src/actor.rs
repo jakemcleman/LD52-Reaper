@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::{
     pickup::{check_for_pickups, PickupCollector, PickupEvent},
     soul::CollectedSoulEvent,
@@ -5,7 +7,7 @@ use crate::{
     GameState,
 };
 use bevy::{prelude::*, sprite::Anchor};
-use bevy_rapier2d::{na::distance, prelude::*};
+use bevy_rapier2d::{na::{distance, Quaternion}, prelude::*};
 
 pub struct ActorPlugin;
 
@@ -24,7 +26,7 @@ pub struct Actor {
     pub can_jump: bool,
     pub can_attack: bool,
     pub attack_sprite: Option<Handle<TextureAtlas>>,
-    pub attack_input: bool,
+    pub attack_input: Option<Vec2>,
     pub attack_time: f32,
     pub attack_range: f32,
 }
@@ -35,7 +37,7 @@ pub struct ActorStatus {
     pub velocity: Vec2,
     pub facing_left: bool,
     pub air_timer: f32,
-    pub attacking: bool,
+    pub attack_direction: Option<Vec2>,
     pub attack_timer: f32,
     pub left_wall: bool,
     pub right_wall: bool,
@@ -197,7 +199,7 @@ impl Default for Actor {
             move_input: 0.,
             jump_input: false,
             attack_time: 0.2,
-            attack_input: false,
+            attack_input: None,
             attack_range: 16.0,
             attack_sprite: None,
             can_jump: false,
@@ -221,7 +223,7 @@ pub fn actor_status(
             actor_status.event = Some(ActorEvent::Landed);
         }
 
-        if actor_status.attacking {
+        if actor_status.attack_direction.is_some() {
             actor_status.attack_timer += time.delta_seconds();
         }
 
@@ -288,15 +290,14 @@ pub fn actor_attack(
     rapier_context: Res<RapierContext>,
 ) {
     for (transform, actor, mut status) in &mut actor_query {
-        if status.attacking {
+        if let Some(dir) = status.attack_direction {
             if status.attack_timer >= actor.attack_time {
-                status.attacking = false;
+                status.attack_direction = None;
             }
 
             let shape = Collider::ball(actor.attack_range);
             let attack_distance = actor.attack_range + 5.01;
-            let attack_offset =
-                if status.facing_left { -1. } else { 1. } * attack_distance * Vec2::X;
+            let attack_offset = dir * attack_distance;
             let filter = QueryFilter::new();
 
             rapier_context.intersections_with_shape(
@@ -313,10 +314,13 @@ pub fn actor_attack(
                     true
                 },
             );
-        } else if actor.can_attack && actor.attack_input {
-            status.attacking = true;
+        } else if actor.can_attack && actor.attack_input.is_some() {
+            status.attack_direction = actor.attack_input;
             status.attack_timer = 0.;
             status.event = Some(ActorEvent::Attack);
+        }
+        else {
+            status.attack_direction = None;
         }
     }
 }
@@ -380,7 +384,8 @@ fn actor_animations(
     mut weapon_query: Query<(
         &ActorWeapon,
         &mut SpriteAnimator,
-        &mut TextureAtlasSprite
+        &mut TextureAtlasSprite,
+        &mut Transform
     ), Without<Actor>
     >,
 ) {
@@ -403,21 +408,37 @@ fn actor_animations(
 
         if let Some(children) = opt_children {
             for child in children.iter() {
-                if let Ok((_, mut weapon_animator, mut weapon_sprite)) = weapon_query.get_mut(*child) {
+                if let Ok((_, mut weapon_animator, mut weapon_sprite, mut weapon_transform)) = weapon_query.get_mut(*child) {
                     let progress = animator.get_frame();
-                    if status.attacking {
+                    if let Some(direction) = status.attack_direction {
                         let t = status.attack_timer / actor.attack_time;
                         weapon_animator.set_row(anim_states.attack_row);
                         weapon_animator.set_animation_progress(t);
+
+                        weapon_sprite.flip_x = direction.x < 0.;
+
+                        let upness = direction.dot(Vec2::new(0., 1.));
+
+                        let mut rot_angle = 0.;
+                        
+                        if upness > 0.7 {
+                            rot_angle = PI / 2.;
+                        }
+                        else if upness < -0.7 {
+                            rot_angle = -PI / 2.;
+                        }
+                        let rotation = Quat::from_rotation_z(rot_angle);
+                        weapon_transform.rotation = rotation;
                     }
                     else {
                         // Sync animators
                         let row = animator.get_row();
                         weapon_animator.set_row(row);
                         weapon_animator.set_frame(progress);
+
+                        weapon_sprite.flip_x = status.facing_left;
+                        weapon_transform.rotation = Quat::IDENTITY;
                     }
-        
-                    weapon_sprite.flip_x = status.facing_left;
                 }
             }
         }

@@ -143,7 +143,7 @@ impl LdtkEntity for GhostBundle {
                 facing_left: false,
                 velocity: Vec2::ZERO,
                 air_timer: 0.,
-                attacking: false,
+                attack_direction: None,
                 attack_timer: 0.,
                 left_wall: false,
                 right_wall: false,
